@@ -1,0 +1,39 @@
+{
+  "success": 1,
+  "total_inventory_count": 4,
+  "assets": [
+    { "appid": 730, "contextid": "2", "assetid": "111", "classid": "c1", "instanceid": "i1", "amount": "1" },
+    { "appid": 730, "contextid": "2", "assetid": "112", "classid": "c1", "instanceid": "i1", "amount": "1" },
+    { "appid": 730, "contextid": "2", "assetid": "222", "classid": "c2", "instanceid": "0", "amount": "3" },
+    { "appid": 730, "contextid": "2", "assetid": "333", "classid": "c9", "instanceid": "0", "amount": "1" }
+  ],
+  "descriptions": [
+    {
+      "classid": "c1",
+      "instanceid": "i1",
+      "market_hash_name": "AK-47 | Redline (Field-Tested)",
+      "tradable": 1,
+      "marketable": 1,
+      "icon_url": "ak47redline_icon",
+      "type": "Classified Rifle",
+      "tags": [
+        { "category": "Weapon", "internal_name": "weapon_ak47", "localized_tag_name": "AK-47" },
+        { "category": "Type", "internal_name": "CSGO_Type_Rifle", "localized_tag_name": "Rifle" },
+        { "category": "Rarity", "internal_name": "Rarity_Legendary_Weapon", "localized_tag_name": "Classified" },
+        { "category": "Exterior", "internal_name": "WearCategory2", "localized_tag_name": "Field-Tested" }
+      ]
+    },
+    {
+      "classid": "c2",
+      "instanceid": "0",
+      "market_hash_name": "Sticker | Crown (Foil)",
+      "tradable": 0,
+      "marketable": 1,
+      "icon_url": "crown_icon",
+      "type": "High Grade Sticker",
+      "tags": [
+        { "category": "Type", "internal_name": "CSGO_Tool_Sticker", "localized_tag_name": "Sticker" }
+      ]
+    }
+  ]
+}

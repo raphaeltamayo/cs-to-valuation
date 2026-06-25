@@ -1,0 +1,35 @@
+[
+  {
+    "market_hash_name": "AK-47 | Redline (Field-Tested)",
+    "currency": "EUR",
+    "suggested_price": 13.0,
+    "min_price": 12.34,
+    "max_price": 20.0,
+    "mean_price": 15.0,
+    "median_price": 14.5,
+    "quantity": 42,
+    "updated_at": 1700000000
+  },
+  {
+    "market_hash_name": "Glock-18 | Water Elemental (Minimal Wear)",
+    "currency": "EUR",
+    "suggested_price": 8.0,
+    "min_price": 7.5,
+    "max_price": 11.0,
+    "mean_price": 9.0,
+    "median_price": 8.75,
+    "quantity": 10,
+    "updated_at": 1700000000
+  },
+  {
+    "market_hash_name": "Currently Unlisted Item",
+    "currency": "EUR",
+    "suggested_price": null,
+    "min_price": null,
+    "max_price": null,
+    "mean_price": null,
+    "median_price": null,
+    "quantity": 0,
+    "updated_at": 1700000000
+  }
+]

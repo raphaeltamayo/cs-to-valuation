@@ -38,7 +38,7 @@ public sealed record InventoryItem
     /// <summary>Whether the item can be listed on the Steam Market.</summary>
     public bool Marketable { get; init; }
 
-    /// <summary>Relative Steam CDN icon path; combined with the CDN base to load images.</summary>
+    /// <summary>Absolute URL of the item's icon on the Steam CDN, ready to load.</summary>
     public string? IconUrl { get; init; }
 
     /// <summary>Weapon name from the item's tags, e.g. "AK-47" (open-ended, hence a string).</summary>
