@@ -31,7 +31,7 @@ public class ValuationServiceTests
         var line = Assert.Single(result.Items);
         Assert.True(line.IsPriced);
         Assert.Equal(25.00m, line.LineGross);
-        Assert.Equal(23.00m, line.LineNet);   // 25 * (1 - 0.08)
+        Assert.Equal(23.00m, line.LineNet);
         Assert.Equal(25.00m, result.TotalGross);
         Assert.Equal(23.00m, result.TotalNet);
         Assert.Equal(1, result.PricedCount);
@@ -47,8 +47,8 @@ public class ValuationServiceTests
         var result = _sut.Value(inventory, prices, FeeModel.Default);
 
         var line = Assert.Single(result.Items);
-        Assert.Equal(30.00m, line.LineGross);          // 10 * 3
-        Assert.Equal(27.60m, line.LineNet);            // 30 * 0.92
+        Assert.Equal(30.00m, line.LineGross);
+        Assert.Equal(27.60m, line.LineNet);
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class ValuationServiceTests
         Assert.Equal(3, result.Items.Count);
         Assert.Equal(2, result.PricedCount);
         Assert.Equal(1, result.UnpricedCount);
-        Assert.Equal(125.00m, result.TotalGross);      // 25 + (50 * 2)
-        Assert.Equal(115.00m, result.TotalNet);        // 125 * 0.92
+        Assert.Equal(125.00m, result.TotalGross);
+        Assert.Equal(115.00m, result.TotalNet);
     }
 
     [Fact]

@@ -3,11 +3,6 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.Tests;
 
-/// <summary>
-/// Small factory helpers that build fully-formed domain objects with sensible defaults,
-/// so individual tests only have to specify the field under test. Keeps the arrange step
-/// of each test short and the intent obvious.
-/// </summary>
 internal static class TestData
 {
     public static InventoryItem Item(string marketHashName, int quantity = 1) => new()

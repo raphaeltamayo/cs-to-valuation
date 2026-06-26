@@ -3,11 +3,6 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.App.ViewModels;
 
-/// <summary>
-/// The headline numbers shown in the summary panel. Immutable: when a new valuation is
-/// produced the <see cref="MainViewModel"/> swaps in a whole new instance rather than
-/// mutating fields, so the UI updates from a single property change.
-/// </summary>
 internal sealed class SummaryViewModel
 {
     private SummaryViewModel(InventoryValuation valuation)

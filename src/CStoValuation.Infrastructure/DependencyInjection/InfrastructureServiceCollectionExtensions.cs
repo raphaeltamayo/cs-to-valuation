@@ -11,18 +11,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CStoValuation.Infrastructure.DependencyInjection;
 
-/// <summary>
-/// One-stop registration for everything the Infrastructure layer provides. The composition
-/// root (the WPF app) just calls <see cref="AddInfrastructure"/>, so wiring details — typed
-/// HTTP clients, decompression, resilience, the DbContext factory — stay encapsulated here.
-/// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
     private const string SteamCommunityBaseUrl = "https://steamcommunity.com/";
     private const string SkinportBaseUrl = "https://api.skinport.com/";
 
-    // Steam and Skinport sit behind bot-protection (Akamai / Cloudflare) that scrutinises the
-    // User-Agent. A realistic desktop-browser UA avoids being flagged as an anonymous script.
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
         "Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0";
@@ -32,26 +25,19 @@ public static class InfrastructureServiceCollectionExtensions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sqliteConnectionString);
 
-        // A factory (rather than a scoped DbContext) suits a desktop app: the UI and the
-        // background snapshot service each create their own short-lived context on demand.
         services.AddDbContextFactory<AppDbContext>(options => options.UseSqlite(sqliteConnectionString));
 
-        // System clock by default; tests substitute a fake. TryAdd keeps a test override intact.
         services.TryAddSingleton(TimeProvider.System);
 
-        // Holds the Steam web session captured at sign-in (enables authenticated price history).
         services.AddSingleton<ISteamSession, SteamSession>();
 
         AddHttpClients(services);
 
-        // Pure domain logic — no state, safe to share as a singleton.
         services.AddSingleton<IValuationService, ValuationService>();
 
-        // Repositories are stateless (they hold only the context factory), so singletons are fine.
         services.AddSingleton<IInventoryRepository, InventoryRepository>();
         services.AddSingleton<IPriceSnapshotRepository, PriceSnapshotRepository>();
 
-        // Records owned-item prices over time to build the chart/movers history series.
         services.AddHostedService<PriceSnapshotBackgroundService>();
 
         return services;
@@ -59,16 +45,11 @@ public static class InfrastructureServiceCollectionExtensions
 
     private static void AddHttpClients(IServiceCollection services)
     {
-        // Steam community client, shared by the id resolver, inventory, and market services.
         services.AddHttpClient<ISteamIdResolver, SteamIdResolver>(ConfigureSteamClient);
         services.AddHttpClient<ISteamInventoryService, SteamInventoryService>(ConfigureSteamClient);
         services.AddHttpClient<ISteamMarketPriceService, SteamMarketPriceService>(ConfigureSteamClient);
         services.AddHttpClient<ISteamMarketHistoryService, SteamMarketHistoryService>(ConfigureSteamClient);
 
-        // Skinport requires Brotli (it returns 406 otherwise), so we configure automatic
-        // decompression on the primary handler and add the standard retry/timeout/circuit
-        // -breaker resilience pipeline. The service itself is a singleton (its 5-minute
-        // cache must outlive a single request), built from a named client.
         services.AddHttpClient(SkinportPriceService.HttpClientName, client =>
             {
                 client.BaseAddress = new Uri(SkinportBaseUrl);
@@ -90,7 +71,6 @@ public static class InfrastructureServiceCollectionExtensions
                 provider.GetRequiredService<TimeProvider>());
         });
 
-        // Sales history shares the same configured Skinport client (Brotli + resilience).
         services.AddSingleton<ISkinportSalesHistoryService>(provider =>
         {
             var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();

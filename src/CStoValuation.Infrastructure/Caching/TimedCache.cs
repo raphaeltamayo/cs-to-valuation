@@ -1,12 +1,5 @@
 namespace CStoValuation.Infrastructure.Caching;
 
-/// <summary>
-/// A tiny time-to-live cache for expensive bulk fetches, keyed by string. A
-/// <see cref="SemaphoreSlim"/> collapses a burst of concurrent callers into a single fetch
-/// (async double-checked locking), and time is read through <see cref="TimeProvider"/> so
-/// expiry is deterministically testable. Shared by the Skinport price and sales-history
-/// services, which have identical 5-minute caching needs.
-/// </summary>
 internal sealed class TimedCache<TValue>
 {
     private readonly TimeProvider _timeProvider;
@@ -20,7 +13,6 @@ internal sealed class TimedCache<TValue>
         _timeToLive = timeToLive;
     }
 
-    /// <summary>Returns the cached value for <paramref name="key"/>, fetching it if stale/absent.</summary>
     public async Task<TValue> GetOrAddAsync(
         string key, Func<CancellationToken, Task<TValue>> factory, CancellationToken cancellationToken)
     {
@@ -33,7 +25,6 @@ internal sealed class TimedCache<TValue>
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            // Re-check: another caller may have refreshed while we waited for the lock.
             if (TryGetFresh(key, now, out cached))
             {
                 return cached;

@@ -7,18 +7,6 @@ using System.Windows.Media.Imaging;
 
 namespace CStoValuation.App.Behaviors;
 
-/// <summary>
-/// Attached behaviour that loads an <see cref="Image.Source"/> from a URL asynchronously,
-/// with an in-memory cache, so scrolling a large inventory never blocks the UI thread.
-/// </summary>
-/// <remarks>
-/// Usage in XAML: <c>&lt;Image behaviors:ImageLoader.SourceUrl="{Binding ImageUrl}" /&gt;</c>.
-/// Each decoded <see cref="BitmapImage"/> is created with <see cref="BitmapCacheOption.OnLoad"/>
-/// (so the source stream can be disposed immediately) and then <c>Freeze()</c>d, which makes it
-/// immutable and shareable across the cache and the UI thread without marshalling. Because list
-/// virtualization recycles <see cref="Image"/> elements, we re-check the element's current URL
-/// before assigning, so a slow download can't land on a row that has since been reused.
-/// </remarks>
 public static class ImageLoader
 {
     private static readonly HttpClient HttpClient = new();
@@ -51,7 +39,6 @@ public static class ImageLoader
 
         var bitmap = await LoadAsync(url);
 
-        // Guard against virtualization recycling: only assign if this element still wants this URL.
         if (bitmap is not null && GetSourceUrl(image) == url)
         {
             image.Source = bitmap;
@@ -74,7 +61,6 @@ public static class ImageLoader
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            // A missing image is cosmetic — leave the slot blank rather than crash the UI.
             return null;
         }
     }

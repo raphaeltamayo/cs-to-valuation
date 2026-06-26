@@ -6,10 +6,6 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace CStoValuation.Tests;
 
-/// <summary>
-/// Round-trips the repositories against a real (in-memory) SQLite database, so the EF
-/// mapping, indexes and queries are all exercised — not just mocked away.
-/// </summary>
 public class RepositoryTests : IDisposable
 {
     private readonly SqliteInMemoryContextFactory _factory = new();
@@ -81,8 +77,8 @@ public class RepositoryTests : IDisposable
         var history = await repository.GetHistoryAsync(name, Day(2));
 
         Assert.Equal(2, history.Count);
-        Assert.Equal(12m, history[0].Price);   // Day(2), oldest of the in-range points
-        Assert.Equal(13m, history[1].Price);   // Day(3)
+        Assert.Equal(12m, history[0].Price);
+        Assert.Equal(13m, history[1].Price);
     }
 
     [Fact]

@@ -5,12 +5,6 @@ using CStoValuation.Core.Enums;
 
 namespace CStoValuation.App.Converters;
 
-/// <summary>
-/// Maps a <see cref="Rarity"/> to the colour CS2 uses for that tier, for the little rarity
-/// chip in each row. Returns a frozen brush (immutable, freely shareable across threads and
-/// rows). An <see cref="IValueConverter"/> is the WPF equivalent of a JavaFX cell factory or
-/// a JSF converter: a small adapter between a data value and its visual representation.
-/// </summary>
 public sealed class RarityToBrushConverter : IValueConverter
 {
     private static readonly IReadOnlyDictionary<Rarity, Brush> Brushes = new Dictionary<Rarity, Brush>

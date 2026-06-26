@@ -14,7 +14,6 @@ internal sealed class CachedInventoryItemConfiguration : IEntityTypeConfiguratio
         builder.Property(item => item.SteamId64).IsRequired();
         builder.Property(item => item.MarketHashName).IsRequired();
 
-        // The inventory is always read back by owner, so index that column.
         builder.HasIndex(item => item.SteamId64);
     }
 }

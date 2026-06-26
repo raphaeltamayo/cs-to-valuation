@@ -9,12 +9,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CStoValuation.Infrastructure.Steam;
 
-/// <summary>
-/// Fetches an item's day-by-day price history from the Steam Community Market's
-/// <c>pricehistory</c> endpoint. That endpoint only answers authenticated requests, so the
-/// current session cookies (captured at sign-in) are attached per call; without a session the
-/// method returns an empty list and the caller falls back to a coarser source.
-/// </summary>
 public sealed class SteamMarketHistoryService : ISteamMarketHistoryService
 {
     private readonly HttpClient _httpClient;
@@ -29,14 +23,13 @@ public sealed class SteamMarketHistoryService : ISteamMarketHistoryService
         _logger = logger ?? NullLogger<SteamMarketHistoryService>.Instance;
     }
 
-    /// <inheritdoc />
     public async Task<IReadOnlyList<PriceHistoryPoint>> GetPriceHistoryAsync(
         string marketHashName, string currency, CancellationToken cancellationToken = default)
     {
         var cookie = _session.CookieHeader;
         if (string.IsNullOrEmpty(cookie))
         {
-            return []; // not signed in — caller will fall back
+            return [];
         }
 
         var requestUri =
@@ -83,7 +76,6 @@ public sealed class SteamMarketHistoryService : ISteamMarketHistoryService
         return points;
     }
 
-    // Steam encodes the date as e.g. "Jul 18 2019 01: +0" (English month, hour, fixed "+0").
     private static DateTimeOffset? ParseDate(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -121,7 +113,6 @@ public sealed class SteamMarketHistoryService : ISteamMarketHistoryService
         [JsonPropertyName("success")]
         public bool Success { get; init; }
 
-        // Each entry is a heterogeneous array: [dateString, price(number), volume(string)].
         [JsonPropertyName("prices")]
         public List<JsonElement[]>? Prices { get; init; }
     }

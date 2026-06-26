@@ -4,13 +4,6 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.App.ViewModels;
 
-/// <summary>
-/// One row in the inventory grid. A valued item never changes after it is computed, so this
-/// is an immutable, plain view-model (no change notification needed): it just exposes the
-/// underlying <see cref="ValuedItem"/> in display-ready form. Both raw numeric values (for
-/// sorting) and formatted strings (for display) are exposed, so the grid can sort a column
-/// numerically while showing "—" for unpriced lines.
-/// </summary>
 internal sealed class ValuedItemViewModel
 {
     public ValuedItemViewModel(ValuedItem valued, string currency)
@@ -50,13 +43,11 @@ internal sealed class ValuedItemViewModel
     public int Quantity { get; }
     public bool IsPriced { get; }
 
-    // Raw values back the column sorting (null sorts as "no value").
     public decimal? UnitGross { get; }
     public decimal? UnitNet { get; }
     public decimal? LineGross { get; }
     public decimal? LineNet { get; }
 
-    // Formatted values are what the cells actually display.
     public string UnitGrossText { get; }
     public string UnitNetText { get; }
     public string LineGrossText { get; }

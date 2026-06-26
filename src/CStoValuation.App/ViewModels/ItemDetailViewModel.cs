@@ -11,18 +11,11 @@ using SkiaSharp;
 
 namespace CStoValuation.App.ViewModels;
 
-/// <summary>A selectable look-back window for the price chart.</summary>
 internal sealed record HistoryRange(int Days, string Label)
 {
     public override string ToString() => Label;
 }
 
-/// <summary>
-/// Drives the item-detail panel: Skinport gross/net, an on-demand Steam Market second price plus
-/// trade volume, and a price chart. The chart prefers Steam's real day-by-day history (when the
-/// user is signed in) filtered to the selected window; otherwise it falls back to the coarse
-/// trend from Skinport's trailing-window sales history.
-/// </summary>
 internal sealed partial class ItemDetailViewModel : ObservableObject
 {
     private const string Currency = "EUR";
@@ -58,7 +51,7 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
         _steamMarketService = steamMarketService;
         _timeProvider = timeProvider ?? TimeProvider.System;
 
-        _selectedRange = Ranges[1]; // default to 30 days
+        _selectedRange = Ranges[1];
         XAxes = [BuildDateAxis()];
         YAxes = [BuildPriceAxis()];
     }
@@ -75,7 +68,6 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
 
     public Axis[] YAxes { get; }
 
-    /// <summary>Loads detail for the selected row, or clears the panel when nothing is selected.</summary>
     public async Task LoadAsync(ValuedItemViewModel? item, ItemSalesHistory? salesHistory)
     {
         if (item is null)
@@ -142,7 +134,6 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
         var since = _timeProvider.GetUtcNow() - TimeSpan.FromDays(SelectedRange.Days);
         var windowed = _fullHistory.Where(point => point.DateUtc >= since).ToList();
 
-        // If the chosen window is too sparse, show whatever history we have rather than a blank.
         if (windowed.Count < 2)
         {
             windowed = [.. _fullHistory];
@@ -153,10 +144,6 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
             .ToArray();
     }
 
-    /// <summary>
-    /// Fallback when no signed-in history is available: a coarse 4-point trend (≈90d, 30d, 7d, now)
-    /// from Skinport's trailing-window averages (median as a fallback). Points with no sales drop out.
-    /// </summary>
     private DateTimePoint[] BuildTrendPoints(ItemSalesHistory? salesHistory)
     {
         if (salesHistory is null)
@@ -214,7 +201,7 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
         UnitWidth = TimeSpan.FromDays(1).Ticks,
         LabelsPaint = new SolidColorPaint(MutedColor),
         TextSize = 11,
-        SeparatorsPaint = null, // no vertical gridlines
+        SeparatorsPaint = null,
     };
 
     private static Axis BuildPriceAxis() => new()

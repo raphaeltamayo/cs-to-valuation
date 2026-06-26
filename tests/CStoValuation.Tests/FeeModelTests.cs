@@ -12,9 +12,9 @@ public class FeeModelTests
     }
 
     [Theory]
-    [InlineData(100.00, 0.08, 92.00)]   // standard fee
-    [InlineData(100.00, 0.00, 100.00)]  // no fee → net equals gross
-    [InlineData(0.00, 0.08, 0.00)]      // nothing in, nothing out
+    [InlineData(100.00, 0.08, 92.00)]
+    [InlineData(100.00, 0.00, 100.00)]
+    [InlineData(0.00, 0.08, 0.00)]
     public void NetFromGross_applies_the_fee(decimal gross, decimal rate, decimal expectedNet)
     {
         var model = new FeeModel(rate);
@@ -25,11 +25,8 @@ public class FeeModelTests
     [Fact]
     public void NetFromGross_rounds_to_two_decimal_places()
     {
-        // 10.00 * (1 - 0.085) = 9.15 exactly here, but a rate that produces a long
-        // tail must still settle to cents.
         var model = new FeeModel(0.085m);
 
-        // 33.33 * 0.915 = 30.497... → 30.50 (away from zero).
         Assert.Equal(30.50m, model.NetFromGross(33.33m));
     }
 

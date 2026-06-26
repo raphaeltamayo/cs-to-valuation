@@ -3,12 +3,6 @@ using System.Text;
 
 namespace CStoValuation.Infrastructure.Steam;
 
-/// <summary>
-/// Parses the locale-formatted price and volume strings the Steam Market returns (e.g.
-/// "1.234,56€", "$12.34", "1,234"). Rather than guess a culture, we normalise: the last
-/// ',' or '.' is treated as the decimal separator and every other separator is dropped,
-/// which handles both European and US formatting from one code path.
-/// </summary>
 internal static class SteamPriceParser
 {
     public static decimal? ParsePrice(string? raw)
@@ -35,7 +29,6 @@ internal static class SteamPriceParser
         }
         else
         {
-            // Strip all separators, then reinsert a single '.' at the decimal position.
             var integerPart = digits[..decimalSeparator].Replace(",", string.Empty).Replace(".", string.Empty);
             var fractionPart = digits[(decimalSeparator + 1)..].Replace(",", string.Empty).Replace(".", string.Empty);
             normalized = $"{integerPart}.{fractionPart}";
@@ -53,7 +46,6 @@ internal static class SteamPriceParser
             return null;
         }
 
-        // Volume is a whole number; keep only digits (drops thousands separators).
         var builder = new StringBuilder(raw.Length);
         foreach (var c in raw)
         {

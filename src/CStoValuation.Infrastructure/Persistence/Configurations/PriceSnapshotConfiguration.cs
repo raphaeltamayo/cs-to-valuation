@@ -14,7 +14,6 @@ internal sealed class PriceSnapshotConfiguration : IEntityTypeConfiguration<Pric
         builder.Property(snapshot => snapshot.MarketHashName).IsRequired();
         builder.Property(snapshot => snapshot.Currency).IsRequired();
 
-        // Latest-snapshot-per-item lookups read by name and order by time.
         builder.HasIndex(snapshot => new { snapshot.MarketHashName, snapshot.TakenUtc });
     }
 }

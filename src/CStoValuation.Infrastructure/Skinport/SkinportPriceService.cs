@@ -6,17 +6,8 @@ using CStoValuation.Infrastructure.Caching;
 
 namespace CStoValuation.Infrastructure.Skinport;
 
-/// <summary>
-/// Skinport price source. One bulk call returns the entire CS2 catalogue, which we
-/// project into a name → quote map for O(1) lookup during valuation.
-/// </summary>
-/// <remarks>
-/// Skinport is strictly rate-limited (~8 requests / 5 minutes), so results are cached for
-/// five minutes per currency via <see cref="TimedCache{TValue}"/>.
-/// </remarks>
 public sealed class SkinportPriceService : ISkinportPriceService
 {
-    /// <summary>Name of the configured <see cref="HttpClient"/> (Brotli + resilience).</summary>
     public const string HttpClientName = "skinport";
 
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
@@ -31,7 +22,6 @@ public sealed class SkinportPriceService : ISkinportPriceService
             timeProvider ?? TimeProvider.System, CacheDuration);
     }
 
-    /// <inheritdoc />
     public Task<IReadOnlyDictionary<string, PriceQuote>> GetPricesAsync(
         string currency, CancellationToken cancellationToken = default) =>
         _cache.GetOrAddAsync(currency, ct => FetchPricesAsync(currency, ct), cancellationToken);
@@ -47,7 +37,6 @@ public sealed class SkinportPriceService : ISkinportPriceService
         var quotes = new Dictionary<string, PriceQuote>(items.Count, StringComparer.Ordinal);
         foreach (var item in items)
         {
-            // Skip anything we can't actually value: no name, or nothing listed.
             if (string.IsNullOrEmpty(item.MarketHashName) || item.MinPrice is not { } minPrice)
             {
                 continue;

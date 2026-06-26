@@ -13,7 +13,6 @@ internal sealed class PriceHistoryPointConfiguration : IEntityTypeConfiguration<
 
         builder.Property(point => point.MarketHashName).IsRequired();
 
-        // The chart reads one item's series in time order; this composite index serves it.
         builder.HasIndex(point => new { point.MarketHashName, point.DateUtc });
     }
 }

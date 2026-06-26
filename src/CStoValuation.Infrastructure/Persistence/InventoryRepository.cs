@@ -5,12 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CStoValuation.Infrastructure.Persistence;
 
-/// <summary>
-/// SQLite-backed inventory cache. Uses <see cref="IDbContextFactory{TContext}"/> to spin
-/// up a short-lived context per operation — the right pattern for a desktop app where a
-/// background service and the UI may touch the database concurrently and a single shared,
-/// scoped context would not be thread-safe.
-/// </summary>
 public sealed class InventoryRepository : IInventoryRepository
 {
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
@@ -22,14 +16,11 @@ public sealed class InventoryRepository : IInventoryRepository
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    /// <inheritdoc />
     public async Task SaveInventoryAsync(
         string steamId64, IReadOnlyCollection<InventoryItem> items, CancellationToken cancellationToken = default)
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-        // Replace the previous cache for this account wholesale — a fresh import is the
-        // new source of truth. ExecuteDelete issues a single DELETE without loading rows.
         await context.InventoryItems
             .Where(item => item.SteamId64 == steamId64)
             .ExecuteDeleteAsync(cancellationToken)
@@ -41,13 +32,11 @@ public sealed class InventoryRepository : IInventoryRepository
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
     public async Task<IReadOnlyList<InventoryItem>> GetCachedInventoryAsync(
         string steamId64, CancellationToken cancellationToken = default)
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-        // AsNoTracking: we only read, so skip the change-tracker overhead.
         var rows = await context.InventoryItems
             .AsNoTracking()
             .Where(item => item.SteamId64 == steamId64)

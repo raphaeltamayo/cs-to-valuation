@@ -12,7 +12,6 @@ public class SteamIdResolverTests
     [Fact]
     public async Task A_bare_steamid64_is_returned_without_any_network_call()
     {
-        // Strict handler that throws if touched proves resolution stayed offline.
         var resolver = new SteamIdResolver(MockHttp.Client(SteamCommunity,
             _ => throw new InvalidOperationException("No network call expected for a bare id.")));
 

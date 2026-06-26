@@ -2,12 +2,6 @@ using CStoValuation.Core.Enums;
 
 namespace CStoValuation.Infrastructure.Steam;
 
-/// <summary>
-/// Maps Steam's English tag values onto the domain's <see cref="Rarity"/> and
-/// <see cref="Exterior"/> enums. Mapping on the localized (English) name is more stable
-/// than on Steam's internal codes, which vary by item family; anything unrecognised
-/// degrades gracefully to <see cref="Rarity.Unknown"/> / <see cref="Exterior.None"/>.
-/// </summary>
 internal static class SteamTagMapper
 {
     private static readonly Dictionary<string, Rarity> RarityByName = new(StringComparer.OrdinalIgnoreCase)

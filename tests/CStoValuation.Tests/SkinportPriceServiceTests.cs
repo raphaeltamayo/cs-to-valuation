@@ -17,7 +17,6 @@ public class SkinportPriceServiceTests
 
         var prices = await service.GetPricesAsync("EUR");
 
-        // The unlisted item (null min_price) is skipped — it can't be valued.
         Assert.Equal(2, prices.Count);
 
         var ak = prices["AK-47 | Redline (Field-Tested)"];
@@ -44,14 +43,14 @@ public class SkinportPriceServiceTests
         var service = new SkinportPriceService(client, clock);
 
         await service.GetPricesAsync("EUR");
-        await service.GetPricesAsync("EUR");          // within the window → served from cache
+        await service.GetPricesAsync("EUR");
         Assert.Equal(1, callCount);
 
         clock.Advance(TimeSpan.FromMinutes(4));
-        await service.GetPricesAsync("EUR");          // still fresh
+        await service.GetPricesAsync("EUR");
         Assert.Equal(1, callCount);
 
-        clock.Advance(TimeSpan.FromMinutes(2));        // now past the 5-minute mark
+        clock.Advance(TimeSpan.FromMinutes(2));
         await service.GetPricesAsync("EUR");
         Assert.Equal(2, callCount);
     }

@@ -5,12 +5,6 @@ using CStoValuation.Infrastructure.Caching;
 
 namespace CStoValuation.Infrastructure.Skinport;
 
-/// <summary>
-/// Skinport sales-history source: one bulk call returns trailing 24h/7d/30d/90d sales
-/// statistics for the whole catalogue, giving the app instant movers and price trends.
-/// Shares the Skinport <see cref="HttpClient"/> and the same 5-minute caching as the price
-/// service (the endpoint is under the same rate limit).
-/// </summary>
 public sealed class SkinportSalesHistoryService : ISkinportSalesHistoryService
 {
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
@@ -25,7 +19,6 @@ public sealed class SkinportSalesHistoryService : ISkinportSalesHistoryService
             timeProvider ?? TimeProvider.System, CacheDuration);
     }
 
-    /// <inheritdoc />
     public Task<IReadOnlyDictionary<string, ItemSalesHistory>> GetSalesHistoryAsync(
         string currency, CancellationToken cancellationToken = default) =>
         _cache.GetOrAddAsync(currency, ct => FetchAsync(currency, ct), cancellationToken);

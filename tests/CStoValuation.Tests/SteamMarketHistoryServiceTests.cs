@@ -28,7 +28,6 @@ public class SteamMarketHistoryServiceTests
     [Fact]
     public async Task Returns_empty_without_a_session_and_makes_no_request()
     {
-        // No cookies → must short-circuit before any network call (strict handler would throw).
         var session = new SteamSession();
         var service = new SteamMarketHistoryService(
             MockHttp.Client(SteamCommunity, _ => throw new InvalidOperationException("no request expected")),

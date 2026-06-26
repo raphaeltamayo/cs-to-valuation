@@ -9,10 +9,10 @@ public class SteamMarketPriceServiceTests
     private const string SteamCommunity = "https://steamcommunity.com/";
 
     [Theory]
-    [InlineData("1,49€", 1.49)]      // EUR, comma decimal
-    [InlineData("$12.34", 12.34)]    // USD, dot decimal
-    [InlineData("1.234,56€", 1234.56)] // EUR, dot thousands + comma decimal
-    [InlineData("1,234.56", 1234.56)]  // US, comma thousands + dot decimal
+    [InlineData("1,49€", 1.49)]
+    [InlineData("$12.34", 12.34)]
+    [InlineData("1.234,56€", 1234.56)]
+    [InlineData("1,234.56", 1234.56)]
     [InlineData("£0.03", 0.03)]
     public void ParsePrice_handles_locale_formats(string raw, decimal expected)
     {

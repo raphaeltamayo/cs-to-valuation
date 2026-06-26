@@ -2,11 +2,6 @@ using CStoValuation.Core.Enums;
 
 namespace CStoValuation.App.Presentation;
 
-/// <summary>
-/// Turns domain enums into the labels CS2 players actually recognise (e.g. "Mil-Spec",
-/// "Factory New"). Display strings live in the App layer, not on the domain enums, so the
-/// domain stays free of presentation concerns.
-/// </summary>
 internal static class EnumDisplay
 {
     public static string ToLabel(this Rarity rarity) => rarity switch

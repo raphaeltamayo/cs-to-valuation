@@ -4,13 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CStoValuation.Tests.TestSupport;
 
-/// <summary>
-/// An <see cref="IDbContextFactory{TContext}"/> backed by a private in-memory SQLite
-/// database. Using the real SQLite provider (rather than EF's in-memory provider) means
-/// the tests exercise actual SQL and the real schema. The single connection is held open
-/// for the fixture's lifetime, because an in-memory SQLite database vanishes the moment
-/// its last connection closes.
-/// </summary>
 internal sealed class SqliteInMemoryContextFactory : IDbContextFactory<AppDbContext>, IDisposable
 {
     private readonly SqliteConnection _connection;

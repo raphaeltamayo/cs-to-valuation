@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CStoValuation.Infrastructure.Persistence;
 
-/// <summary>
-/// SQLite-backed store for price snapshots and the charting history series. Append-only
-/// on the write side; the read side serves the price chart and the movers calculation.
-/// </summary>
 public sealed class PriceSnapshotRepository : IPriceSnapshotRepository
 {
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
@@ -15,7 +11,6 @@ public sealed class PriceSnapshotRepository : IPriceSnapshotRepository
     public PriceSnapshotRepository(IDbContextFactory<AppDbContext> contextFactory) =>
         _contextFactory = contextFactory;
 
-    /// <inheritdoc />
     public async Task AddSnapshotsAsync(
         IEnumerable<PriceSnapshot> snapshots, CancellationToken cancellationToken = default)
     {
@@ -24,7 +19,6 @@ public sealed class PriceSnapshotRepository : IPriceSnapshotRepository
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
     public async Task AddHistoryPointsAsync(
         IEnumerable<PriceHistoryPoint> points, CancellationToken cancellationToken = default)
     {
@@ -33,7 +27,6 @@ public sealed class PriceSnapshotRepository : IPriceSnapshotRepository
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
     public async Task<IReadOnlyList<PriceHistoryPoint>> GetHistoryAsync(
         string marketHashName, DateTimeOffset since, CancellationToken cancellationToken = default)
     {
@@ -47,7 +40,6 @@ public sealed class PriceSnapshotRepository : IPriceSnapshotRepository
             .ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
     public async Task<PriceSnapshot?> GetLatestSnapshotAsync(
         string marketHashName, CancellationToken cancellationToken = default)
     {

@@ -7,12 +7,6 @@ using Microsoft.Web.WebView2.Core;
 
 namespace CStoValuation.App.Views;
 
-/// <summary>
-/// Hosts Steam's OpenID sign-in page in an embedded browser. When Steam redirects back to our
-/// (never-served) return URL, we cancel that navigation, read the SteamID64 out of the query,
-/// verify the assertion with Steam, and close with a result. The WebView2 keeps its profile in
-/// %AppData% so a "remember me" session survives between launches.
-/// </summary>
 internal partial class SteamOpenIdLoginWindow : Window
 {
     private static readonly HttpClient HttpClient = new();
@@ -23,10 +17,8 @@ internal partial class SteamOpenIdLoginWindow : Window
         Loaded += OnLoaded;
     }
 
-    /// <summary>The resolved SteamID64 once sign-in succeeds; null until then.</summary>
     public string? SteamId64 { get; private set; }
 
-    /// <summary>The captured steamcommunity.com cookies (for authenticated calls), if any.</summary>
     public string? CookieHeader { get; private set; }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -46,7 +38,6 @@ internal partial class SteamOpenIdLoginWindow : Window
         }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or WebView2RuntimeNotFoundException)
         {
-            // WebView2 runtime missing or failed to initialise — fall back to manual entry.
             MessageBox.Show(
                 this,
                 "Couldn't start the embedded browser (the WebView2 runtime may be missing). " +
@@ -65,7 +56,6 @@ internal partial class SteamOpenIdLoginWindow : Window
             return;
         }
 
-        // Stop the browser from actually navigating to our placeholder return URL.
         e.Cancel = true;
 
         var steamId = SteamOpenId.ExtractSteamId(uri);
@@ -81,10 +71,6 @@ internal partial class SteamOpenIdLoginWindow : Window
         }
     }
 
-    /// <summary>
-    /// Reads the steamcommunity.com cookies the browser holds after a successful login so the app
-    /// can make authenticated calls (the Market price-history endpoint needs a logged-in session).
-    /// </summary>
     private async Task CaptureSessionCookiesAsync()
     {
         try

@@ -6,11 +6,6 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.Infrastructure.Steam;
 
-/// <summary>
-/// Fetches a single item's Steam Community Market price overview. Steam is heavily rate-limited
-/// (~1 request / 4 s), so this is called on demand for the detail panel only — it is the second
-/// price source and the source of trade <see cref="PriceQuote.Volume"/> (a liquidity signal).
-/// </summary>
 public sealed class SteamMarketPriceService : ISteamMarketPriceService
 {
     private readonly HttpClient _httpClient;
@@ -22,7 +17,6 @@ public sealed class SteamMarketPriceService : ISteamMarketPriceService
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    /// <inheritdoc />
     public async Task<PriceQuote?> GetPriceOverviewAsync(
         string marketHashName, string currency, CancellationToken cancellationToken = default)
     {
@@ -56,7 +50,6 @@ public sealed class SteamMarketPriceService : ISteamMarketPriceService
         };
     }
 
-    // Steam identifies currencies by a numeric id; these are the ones the app offers.
     private static int ToSteamCurrencyId(string currency) => currency switch
     {
         "USD" => 1,

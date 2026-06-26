@@ -19,11 +19,10 @@ public class SteamInventoryServiceTests
 
         var items = await service.GetInventoryAsync(SteamId);
 
-        // Two distinct items; the asset with no matching description is dropped.
         Assert.Equal(2, items.Count);
 
         var ak = items.Single(i => i.MarketHashName == "AK-47 | Redline (Field-Tested)");
-        Assert.Equal(2, ak.Quantity);                 // two assets of the same class were stacked
+        Assert.Equal(2, ak.Quantity);
         Assert.True(ak.Tradable);
         Assert.True(ak.Marketable);
         Assert.Equal("AK-47", ak.Weapon);
@@ -44,9 +43,9 @@ public class SteamInventoryServiceTests
         var items = await service.GetInventoryAsync(SteamId);
 
         var sticker = items.Single(i => i.MarketHashName == "Sticker | Crown (Foil)");
-        Assert.Equal(3, sticker.Quantity);            // single asset with amount "3"
+        Assert.Equal(3, sticker.Quantity);
         Assert.False(sticker.Tradable);
-        Assert.Equal(Rarity.Unknown, sticker.Rarity); // no rarity tag in the fixture
+        Assert.Equal(Rarity.Unknown, sticker.Rarity);
         Assert.Equal(Exterior.None, sticker.Exterior);
     }
 
@@ -79,7 +78,6 @@ public class SteamInventoryServiceTests
             }
             """;
 
-        // The second page is the one carrying the start_assetid cursor.
         var client = MockHttp.Client(SteamCommunity, request =>
             request.RequestUri!.Query.Contains("start_assetid=1001", StringComparison.Ordinal)
                 ? MockHttp.Response(page2)

@@ -4,11 +4,6 @@ using CStoValuation.Core.Abstractions;
 
 namespace CStoValuation.App.Authentication;
 
-/// <summary>
-/// Shows the <see cref="SteamOpenIdLoginWindow"/> as a modal dialog and reports the result.
-/// On success it also records the captured session cookies, which unlocks authenticated calls
-/// such as the Market price-history endpoint.
-/// </summary>
 internal sealed class SteamOpenIdSignIn : ISteamSignIn
 {
     private readonly ISteamSession _session;

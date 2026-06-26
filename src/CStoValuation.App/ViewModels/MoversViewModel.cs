@@ -6,32 +6,20 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.App.ViewModels;
 
-/// <summary>How the movers list is ranked and displayed.</summary>
 internal enum MoverMetric
 {
-    /// <summary>Percentage change of the 7-day average vs the 30-day average.</summary>
     Percentage,
 
-    /// <summary>Absolute change per single unit, in currency.</summary>
     UnitValue,
 
-    /// <summary>Absolute change across the whole owned stack (per-unit × quantity).</summary>
     LineValue,
 }
 
-/// <summary>A selectable metric with its display label (for the dropdown).</summary>
 internal sealed record MetricOption(MoverMetric Value, string Label)
 {
-    // The ComboBox shows this directly, so render as the label rather than the record default.
     public override string ToString() => Label;
 }
 
-/// <summary>
-/// Ranks owned items by recent price momentum ("biggest movers"), measured from each item's
-/// trailing 30-day average to its 7-day average (Skinport sales history) — available instantly,
-/// no waiting for accumulated snapshots. The user chooses whether to rank by percentage, by
-/// per-unit absolute change, or by total (per-unit × quantity owned) change.
-/// </summary>
 internal sealed partial class MoversViewModel : ObservableObject
 {
     private const string Currency = "EUR";
@@ -54,7 +42,6 @@ internal sealed partial class MoversViewModel : ObservableObject
         new(MoverMetric.LineValue, "Total (€)"),
     ];
 
-    /// <summary>Recomputes movers from the supplied sales history for the owned items.</summary>
     public void Load(IReadOnlyDictionary<string, ItemSalesHistory> salesHistory, IEnumerable<ValuedItemViewModel> ownedItems)
     {
         _all.Clear();
@@ -70,7 +57,7 @@ internal sealed partial class MoversViewModel : ObservableObject
             var baseline = history.Last30Days.Average;
             if (recent is not { } recentAvg || baseline is not { } baselineAvg || baselineAvg <= 0m)
             {
-                continue; // need both windows to measure a change
+                continue;
             }
 
             var unitChange = recentAvg - baselineAvg;

@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace CStoValuation.Infrastructure.Skinport;
 
-/// <summary>Wire shape of an entry in Skinport's <c>/v1/sales/history</c> response.</summary>
 internal sealed record SkinportSalesHistoryDto
 {
     [JsonPropertyName("market_hash_name")]
@@ -24,7 +23,6 @@ internal sealed record SkinportSalesHistoryDto
     public SkinportSalesWindowDto? Last90Days { get; init; }
 }
 
-/// <summary>Aggregated stats for one trailing window.</summary>
 internal sealed record SkinportSalesWindowDto
 {
     [JsonPropertyName("min")]

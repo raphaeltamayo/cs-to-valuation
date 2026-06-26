@@ -8,16 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CStoValuation.Infrastructure.Pricing;
 
-/// <summary>
-/// Periodically records the current Skinport price of every owned item, building the price
-/// time-series the chart and the "movers" view read from. It is a hosted
-/// <see cref="BackgroundService"/>: the generic host starts it on launch and stops it on exit.
-/// </summary>
-/// <remarks>
-/// It creates its own short-lived <see cref="AppDbContext"/> per tick via the factory (a
-/// singleton background service must never capture a scoped/shared context), and leans on the
-/// Skinport service's own 5-minute cache so frequent ticks don't hammer the API.
-/// </remarks>
 public sealed class PriceSnapshotBackgroundService : BackgroundService
 {
     private const string Currency = "EUR";
@@ -48,7 +38,6 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
     {
         try
         {
-            // Let the first inventory import happen before the first snapshot.
             await Task.Delay(InitialDelay, _timeProvider, stoppingToken).ConfigureAwait(false);
 
             using var timer = new PeriodicTimer(Interval);
@@ -60,7 +49,6 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            // Normal shutdown — nothing to do.
         }
     }
 
@@ -115,7 +103,6 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // A failed tick must not tear down the loop; log and wait for the next one.
             _logger.LogWarning(ex, "Price snapshot tick failed; will retry on the next interval.");
         }
     }

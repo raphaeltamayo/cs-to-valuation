@@ -11,16 +11,6 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.App.ViewModels;
 
-/// <summary>
-/// The shell view-model: it owns the connect/refresh workflow and the inventory it produces.
-/// </summary>
-/// <remarks>
-/// CommunityToolkit.Mvvm's source generators turn the <c>[ObservableProperty]</c> fields into
-/// full <c>INotifyPropertyChanged</c> properties and the <c>[RelayCommand]</c> methods into
-/// <c>ICommand</c>s at compile time — no hand-written boilerplate, no reflection. Every awaited
-/// call here deliberately keeps the UI synchronization context (no <c>ConfigureAwait(false)</c>),
-/// so continuations resume on the UI thread and it is safe to touch the observable collection.
-/// </remarks>
 internal sealed partial class MainViewModel : ObservableObject
 {
     private const string Currency = "EUR";
@@ -36,11 +26,9 @@ internal sealed partial class MainViewModel : ObservableObject
 
     private string? _lastResolvedId;
 
-    // The latest bulk sales history, sliced per item to drive the detail chart on selection.
     private IReadOnlyDictionary<string, ItemSalesHistory> _salesHistory =
         new Dictionary<string, ItemSalesHistory>();
 
-    // Per-load flags that shape the final status message (set during a load, read at the end).
     private bool _loadedFromCache;
     private bool _pricesUnavailable;
 
@@ -95,7 +83,6 @@ internal sealed partial class MainViewModel : ObservableObject
         Detail = detail;
         Movers = movers;
 
-        // A view over the same collection gives us live sort + filter without copying data.
         ItemsView = CollectionViewSource.GetDefaultView(Items);
         ItemsView.Filter = MatchesSearch;
         ItemsView.SortDescriptions.Add(
@@ -114,10 +101,8 @@ internal sealed partial class MainViewModel : ObservableObject
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
-    // Re-applying the filter is as simple as asking the view to refresh.
     partial void OnSearchTextChanged(string value) => ItemsView.Refresh();
 
-    // Selecting a row loads its detail panel; the detail VM manages its own loading state.
     partial void OnSelectedItemChanged(ValuedItemViewModel? value) =>
         _ = Detail.LoadAsync(value, value is null ? null : _salesHistory.GetValueOrDefault(value.Name));
 
@@ -135,7 +120,6 @@ internal sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        // Sign-in hands us a canonical id; feed it through the normal load path.
         SteamInput = steamId;
         await LoadAsync(useCachedId: false);
     }
@@ -170,7 +154,6 @@ internal sealed partial class MainViewModel : ObservableObject
             var valuation = _valuationService.Value(inventory, prices, _feeModel);
             ShowValuation(valuation);
 
-            // Instant movers + detail trend from Skinport's aggregated sales history.
             _salesHistory = await FetchSalesHistoryAsync();
             Movers.Load(_salesHistory, Items);
         }
@@ -186,15 +169,12 @@ internal sealed partial class MainViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            // Skinport failures are handled inside FetchPricesAsync, so reaching here means
-            // Steam itself was unreachable (down, rate-limiting, or blocked on this network).
             ErrorMessage =
                 "Couldn't reach Steam. It may be down, rate-limiting requests, or blocked on " +
                 "your network. Please try again in a moment.";
         }
         catch (Exception)
         {
-            // Last-resort guard: never let an unexpected error escape into an unhandled crash.
             ErrorMessage = "Something went wrong while loading your inventory. Please try again.";
         }
         finally
@@ -223,7 +203,6 @@ internal sealed partial class MainViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            // Network trouble: fall back to the last good import if we have one.
             var cached = await _inventoryRepository.GetCachedInventoryAsync(steamId);
             if (cached.Count == 0)
             {
@@ -244,8 +223,6 @@ internal sealed partial class MainViewModel : ObservableObject
         }
         catch (Exception)
         {
-            // Prices are non-essential: any failure (HTTP error, timeout, circuit-breaker,
-            // unexpected body) degrades to an unpriced — but still visible — inventory.
             _pricesUnavailable = true;
             return new Dictionary<string, PriceQuote>();
         }
@@ -259,7 +236,6 @@ internal sealed partial class MainViewModel : ObservableObject
         }
         catch (Exception)
         {
-            // Movers/trend are a bonus — never let their absence affect the main flow.
             return new Dictionary<string, ItemSalesHistory>();
         }
     }
