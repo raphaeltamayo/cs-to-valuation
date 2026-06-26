@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Exceptions;
 using CStoValuation.Core.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CStoValuation.Infrastructure.Steam;
 
@@ -17,20 +19,70 @@ public sealed class SteamInventoryService : ISteamInventoryService
     private const string IconCdnBase = "https://community.cloudflare.steamstatic.com/economy/image/";
 
     private readonly HttpClient _httpClient;
+    private readonly ILogger<SteamInventoryService> _logger;
 
-    public SteamInventoryService(HttpClient httpClient) => _httpClient = httpClient;
+    public SteamInventoryService(HttpClient httpClient, ILogger<SteamInventoryService>? logger = null)
+    {
+        _httpClient = httpClient;
+        _logger = logger ?? NullLogger<SteamInventoryService>.Instance;
+    }
+
+    // Steam caps the inventory page size at 2000 (count=5000 is rejected with HTTP 400),
+    // so large inventories are walked page by page via the last_assetid cursor.
+    private const int PageSize = 2000;
+    private const int MaxPages = 25;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<InventoryItem>> GetInventoryAsync(
         string steamId64, CancellationToken cancellationToken = default)
     {
-        // 730 = CS2's app id, context 2 = the tradable inventory. count caps the page size.
-        var requestUri = $"inventory/{steamId64}/730/2?l=english&count=5000";
-        using var response = await _httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        var assets = new List<SteamAssetDto>();
+        var descriptions = new List<SteamDescriptionDto>();
 
-        // A private inventory is an expected, user-fixable condition — surface it as such
-        // rather than as a raw HTTP failure.
-        if (response.StatusCode == HttpStatusCode.Forbidden)
+        string? startAssetId = null;
+        for (var page = 0; page < MaxPages; page++)
+        {
+            var payload = await FetchPageAsync(steamId64, startAssetId, cancellationToken).ConfigureAwait(false);
+
+            // success:1 with no assets is a genuinely empty (but public) inventory.
+            if (payload.Assets is null || payload.Descriptions is null)
+            {
+                break;
+            }
+
+            assets.AddRange(payload.Assets);
+            descriptions.AddRange(payload.Descriptions);
+
+            if (payload.MoreItems != 1 || string.IsNullOrEmpty(payload.LastAssetId))
+            {
+                break;
+            }
+
+            startAssetId = payload.LastAssetId;
+        }
+
+        var items = JoinAndMap(assets, descriptions);
+        _logger.LogInformation("Mapped {Count} inventory stacks from {Assets} assets", items.Count, assets.Count);
+        return items;
+    }
+
+    private async Task<SteamInventoryResponse> FetchPageAsync(
+        string steamId64, string? startAssetId, CancellationToken cancellationToken)
+    {
+        // 730 = CS2's app id, context 2 = the tradable inventory.
+        var requestUri = $"inventory/{steamId64}/730/2?l=english&count={PageSize}";
+        if (startAssetId is not null)
+        {
+            requestUri += $"&start_assetid={startAssetId}";
+        }
+
+        _logger.LogInformation("Requesting inventory page: {RequestUri}", requestUri);
+        using var response = await _httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation("Inventory response {StatusCode} for {SteamId}", (int)response.StatusCode, steamId64);
+
+        // A private/locked inventory is an expected, user-fixable condition (Steam answers 401
+        // or 403) — surface it as such rather than as a raw HTTP failure.
+        if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
         {
             throw new PrivateInventoryException(steamId64);
         }
@@ -41,18 +93,16 @@ public sealed class SteamInventoryService : ISteamInventoryService
             .ReadFromJsonAsync<SteamInventoryResponse>(cancellationToken)
             .ConfigureAwait(false);
 
+        _logger.LogInformation(
+            "Inventory payload: success={Success}, totalCount={Total}, assets={Assets}, descriptions={Descriptions}, moreItems={More}",
+            payload?.Success, payload?.TotalInventoryCount, payload?.Assets?.Count, payload?.Descriptions?.Count, payload?.MoreItems);
+
         if (payload is null || payload.Success != 1)
         {
             throw new PrivateInventoryException(steamId64);
         }
 
-        // success:1 with no assets is a genuinely empty (but public) inventory.
-        if (payload.Assets is null || payload.Descriptions is null)
-        {
-            return [];
-        }
-
-        return JoinAndMap(payload.Assets, payload.Descriptions);
+        return payload;
     }
 
     private static IReadOnlyList<InventoryItem> JoinAndMap(

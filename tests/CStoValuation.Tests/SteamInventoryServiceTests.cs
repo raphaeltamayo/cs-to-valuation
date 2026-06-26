@@ -50,14 +50,47 @@ public class SteamInventoryServiceTests
         Assert.Equal(Exterior.None, sticker.Exterior);
     }
 
-    [Fact]
-    public async Task A_403_response_throws_private_inventory_exception()
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    public async Task A_forbidden_or_unauthorized_response_throws_private_inventory_exception(HttpStatusCode status)
     {
-        var service = new SteamInventoryService(
-            MockHttp.ClientWithStatus(SteamCommunity, HttpStatusCode.Forbidden));
+        var service = new SteamInventoryService(MockHttp.ClientWithStatus(SteamCommunity, status));
 
         var ex = await Assert.ThrowsAsync<PrivateInventoryException>(() => service.GetInventoryAsync(SteamId));
         Assert.Equal(SteamId, ex.SteamId64);
+    }
+
+    [Fact]
+    public async Task Follows_pagination_until_more_items_is_cleared()
+    {
+        const string page1 = """
+            {
+              "success": 1, "more_items": 1, "last_assetid": "1001",
+              "assets": [ { "appid": 730, "contextid": "2", "assetid": "1001", "classid": "c1", "instanceid": "0", "amount": "1" } ],
+              "descriptions": [ { "classid": "c1", "instanceid": "0", "market_hash_name": "First Item", "tradable": 1, "marketable": 1 } ]
+            }
+            """;
+        const string page2 = """
+            {
+              "success": 1,
+              "assets": [ { "appid": 730, "contextid": "2", "assetid": "2002", "classid": "c2", "instanceid": "0", "amount": "1" } ],
+              "descriptions": [ { "classid": "c2", "instanceid": "0", "market_hash_name": "Second Item", "tradable": 1, "marketable": 1 } ]
+            }
+            """;
+
+        // The second page is the one carrying the start_assetid cursor.
+        var client = MockHttp.Client(SteamCommunity, request =>
+            request.RequestUri!.Query.Contains("start_assetid=1001", StringComparison.Ordinal)
+                ? MockHttp.Response(page2)
+                : MockHttp.Response(page1));
+        var service = new SteamInventoryService(client);
+
+        var items = await service.GetInventoryAsync(SteamId);
+
+        Assert.Equal(2, items.Count);
+        Assert.Contains(items, i => i.MarketHashName == "First Item");
+        Assert.Contains(items, i => i.MarketHashName == "Second Item");
     }
 
     [Fact]

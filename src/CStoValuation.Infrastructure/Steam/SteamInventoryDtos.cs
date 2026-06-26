@@ -21,6 +21,14 @@ internal sealed record SteamInventoryResponse
 
     [JsonPropertyName("total_inventory_count")]
     public int TotalInventoryCount { get; init; }
+
+    /// <summary>1 when more pages remain; pass <see cref="LastAssetId"/> as start_assetid to fetch them.</summary>
+    [JsonPropertyName("more_items")]
+    public int MoreItems { get; init; }
+
+    /// <summary>The last asset id on this page — the cursor for the next page.</summary>
+    [JsonPropertyName("last_assetid")]
+    public string? LastAssetId { get; init; }
 }
 
 /// <summary>One owned asset: identifies an item kind and how many are held.</summary>
