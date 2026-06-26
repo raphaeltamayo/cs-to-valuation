@@ -424,7 +424,8 @@ test-results/
 
 # Mac bundle stuff
 *.dmg
-*.app
+# NOTE: the stock "*.app" rule is intentionally removed — this is a Windows-only
+# solution and "*.app" would ignore our CStoValuation.App project folder.
 
 # content below from: https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 # General
