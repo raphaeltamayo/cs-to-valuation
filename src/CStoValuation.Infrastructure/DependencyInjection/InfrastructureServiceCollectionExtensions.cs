@@ -2,6 +2,7 @@ using System.Net;
 using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Services;
 using CStoValuation.Infrastructure.Persistence;
+using CStoValuation.Infrastructure.Pricing;
 using CStoValuation.Infrastructure.Skinport;
 using CStoValuation.Infrastructure.Steam;
 using Microsoft.EntityFrameworkCore;
@@ -44,14 +45,18 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IInventoryRepository, InventoryRepository>();
         services.AddSingleton<IPriceSnapshotRepository, PriceSnapshotRepository>();
 
+        // Records owned-item prices over time to build the chart/movers history series.
+        services.AddHostedService<PriceSnapshotBackgroundService>();
+
         return services;
     }
 
     private static void AddHttpClients(IServiceCollection services)
     {
-        // Steam community client, shared by the id resolver and the inventory service.
+        // Steam community client, shared by the id resolver, inventory, and market services.
         services.AddHttpClient<ISteamIdResolver, SteamIdResolver>(ConfigureSteamClient);
         services.AddHttpClient<ISteamInventoryService, SteamInventoryService>(ConfigureSteamClient);
+        services.AddHttpClient<ISteamMarketPriceService, SteamMarketPriceService>(ConfigureSteamClient);
 
         // Skinport requires Brotli (it returns 406 otherwise), so we configure automatic
         // decompression on the primary handler and add the standard retry/timeout/circuit
