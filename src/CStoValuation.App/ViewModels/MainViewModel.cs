@@ -36,6 +36,9 @@ internal sealed partial class MainViewModel : ObservableObject
     private string? _lastResolvedId;
 
     [ObservableProperty]
+    private ValuedItemViewModel? _selectedItem;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
     private string _steamInput = string.Empty;
 
@@ -68,7 +71,9 @@ internal sealed partial class MainViewModel : ObservableObject
         ISkinportPriceService priceService,
         IValuationService valuationService,
         IInventoryRepository inventoryRepository,
-        ISteamSignIn steamSignIn)
+        ISteamSignIn steamSignIn,
+        ItemDetailViewModel detail,
+        MoversViewModel movers)
     {
         _idResolver = idResolver;
         _inventoryService = inventoryService;
@@ -76,6 +81,8 @@ internal sealed partial class MainViewModel : ObservableObject
         _valuationService = valuationService;
         _inventoryRepository = inventoryRepository;
         _steamSignIn = steamSignIn;
+        Detail = detail;
+        Movers = movers;
 
         // A view over the same collection gives us live sort + filter without copying data.
         ItemsView = CollectionViewSource.GetDefaultView(Items);
@@ -88,12 +95,19 @@ internal sealed partial class MainViewModel : ObservableObject
 
     public ICollectionView ItemsView { get; }
 
+    public ItemDetailViewModel Detail { get; }
+
+    public MoversViewModel Movers { get; }
+
     public bool IsNotBusy => !IsBusy;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     // Re-applying the filter is as simple as asking the view to refresh.
     partial void OnSearchTextChanged(string value) => ItemsView.Refresh();
+
+    // Selecting a row loads its detail panel; the detail VM manages its own loading state.
+    partial void OnSelectedItemChanged(ValuedItemViewModel? value) => _ = Detail.LoadAsync(value);
 
     [RelayCommand(CanExecute = nameof(CanConnect))]
     private Task ConnectAsync() => LoadAsync(useCachedId: false);
@@ -141,6 +155,7 @@ internal sealed partial class MainViewModel : ObservableObject
 
             var valuation = _valuationService.Value(inventory, prices, _feeModel);
             ShowValuation(valuation);
+            await Movers.LoadAsync(valuation.Items.Select(item => item.Item.MarketHashName));
         }
         catch (PrivateInventoryException)
         {

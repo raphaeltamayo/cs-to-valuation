@@ -64,6 +64,8 @@ internal static class HostBuilderExtensions
         builder.Services.AddSingleton<ISteamSignIn, SteamOpenIdSignIn>();
 
         // View-models are transient; the single shell window is a singleton.
+        builder.Services.AddTransient<ItemDetailViewModel>();
+        builder.Services.AddTransient<MoversViewModel>();
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 

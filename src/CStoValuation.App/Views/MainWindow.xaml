@@ -123,7 +123,23 @@
                          Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
 
-        <!-- ===== Inventory grid (inherits this window's DataContext) ===== -->
-        <views:InventoryView Grid.Row="4" Margin="0,12,0,0" />
+        <!-- ===== Content: inventory grid (left) + detail & movers (right) ===== -->
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="380" />
+            </Grid.ColumnDefinitions>
+
+            <views:InventoryView Grid.Column="0" />
+
+            <Grid Grid.Column="1" Margin="12,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <views:ItemDetailView Grid.Row="0" DataContext="{Binding Detail}" />
+                <views:MoversView Grid.Row="1" Margin="0,12,0,0" DataContext="{Binding Movers}" />
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

@@ -1,0 +1,99 @@
+<UserControl x:Class="CStoValuation.App.Views.ItemDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:CStoValuation.App.Behaviors"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ItemDetailViewModel}">
+
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="16">
+        <Grid>
+            <!-- Empty state -->
+            <TextBlock Text="Select an item to see its prices and history."
+                       Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"
+                       VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasSelection}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Detail content -->
+            <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                    <Image behaviors:ImageLoader.SourceUrl="{Binding ImageUrl}"
+                           Width="84" Height="63" Stretch="Uniform" VerticalAlignment="Top" />
+                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold"
+                               TextWrapping="Wrap" Margin="12,0,0,0" Width="220" />
+                </StackPanel>
+
+                <!-- Price sources -->
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Skinport (gross)"
+                               Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SkinportGrossText}"
+                               HorizontalAlignment="Right" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Skinport (net of fees)"
+                               Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,6,0,0" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SkinportNetText}"
+                               HorizontalAlignment="Right" Margin="0,6,0,0"
+                               Foreground="{StaticResource PositiveBrush}" FontWeight="SemiBold" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Steam Market (gross · volume)"
+                               Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,6,0,0" />
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Margin="0,6,0,0">
+                        <TextBlock Text="{Binding SteamPriceText}" />
+                        <TextBlock Text=" · " Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding SteamVolumeText}" Foreground="{StaticResource MutedTextBrush}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Price history chart -->
+                <TextBlock Text="PRICE HISTORY (30 DAYS)" FontSize="11" Margin="0,18,0,6"
+                           Foreground="{StaticResource MutedTextBrush}" />
+
+                <Grid Height="200">
+                    <lvc:CartesianChart Series="{Binding Series}"
+                                        XAxes="{Binding XAxes}"
+                                        YAxes="{Binding YAxes}"
+                                        Visibility="{Binding HasHistory, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Text="No price history recorded yet — it builds up while the app runs."
+                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"
+                               VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasHistory}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

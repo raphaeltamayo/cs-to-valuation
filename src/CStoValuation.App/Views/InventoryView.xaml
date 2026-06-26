@@ -69,6 +69,7 @@
 
             <DataGrid Grid.Row="1"
                       ItemsSource="{Binding ItemsView}"
+                      SelectedItem="{Binding SelectedItem}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       HeadersVisibility="Column"
