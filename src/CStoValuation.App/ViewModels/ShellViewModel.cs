@@ -28,4 +28,12 @@ internal sealed partial class ShellViewModel : ObservableObject
     public IReadOnlyList<NavItem> NavItems { get; }
 
     public object CurrentPage => SelectedNavItem.Page;
+
+    partial void OnSelectedNavItemChanged(NavItem value)
+    {
+        if (value.Page is CatalogPageViewModel catalogPage)
+        {
+            _ = catalogPage.InitializeAsync();
+        }
+    }
 }

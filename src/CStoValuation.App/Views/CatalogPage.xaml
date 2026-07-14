@@ -3,13 +3,96 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:CStoValuation.App.Behaviors"
+             xmlns:views="clr-namespace:CStoValuation.App.Views"
              xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CatalogPageViewModel}">
 
-    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="22">
-        <TextBlock Text="The skin catalog is coming soon."
-                   Foreground="{StaticResource MutedTextBrush}"
-                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-    </Border>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="320" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Search every CS2 skin, not just ones you own" />
+                    <TextBlock Grid.Column="1" Margin="12,0,4,0" VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedTextBrush}" Text="{Binding StatusMessage}" />
+                </Grid>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding Rows}"
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.CanContentScroll="True"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         VirtualizingPanel.ScrollUnit="Pixel">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding Items}" Margin="0,0,0,10">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Width="150" Margin="0,0,10,0"
+                                                Command="{Binding DataContext.SelectItemCommand,
+                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{StaticResource SurfaceMutedBrush}"
+                                                            CornerRadius="8" Padding="10" Cursor="Hand">
+                                                        <StackPanel>
+                                                            <Image behaviors:ImageLoader.SourceUrl="{Binding ImageUrl}"
+                                                                   Width="120" Height="90" Stretch="Uniform" />
+                                                            <TextBlock Text="{Binding Name}" FontSize="11"
+                                                                       TextWrapping="Wrap" Margin="0,8,0,4"
+                                                                       TextTrimming="CharacterEllipsis" MaxHeight="32" />
+                                                            <TextBlock Text="{Binding PriceText}" FontSize="12"
+                                                                       FontWeight="SemiBold" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <views:ItemDetailView Grid.Column="1" Margin="12,0,0,0" DataContext="{Binding Detail}" />
+    </Grid>
 </UserControl>

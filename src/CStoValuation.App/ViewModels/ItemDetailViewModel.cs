@@ -100,9 +100,34 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
         SkinportNetText = item.UnitNetText;
         _salesHistory = salesHistory;
 
-        await LoadHistoryAsync(item.Name);
-        await LoadSteamMarketAsync(item.Name);
-        await LoadOtherSourcesAsync(item.Name);
+        await LoadSupplementalDataAsync(item.Name);
+    }
+
+    /// <summary>
+    /// Loads detail for a catalog entry that isn't in the owner's inventory: there is no
+    /// valuation line to read gross/net from, so the primary-source price is passed in
+    /// directly (already known from the catalog's own bulk price join) and net is derived
+    /// with the same fee model used everywhere else.
+    /// </summary>
+    public async Task LoadForCatalogAsync(string marketHashName, string? imageUrl, decimal? gross, string currency)
+    {
+        HasSelection = true;
+        Name = marketHashName;
+        ImageUrl = imageUrl;
+        SkinportGrossText = MoneyFormatter.Format(gross, currency);
+        SkinportNetText = gross is { } value
+            ? MoneyFormatter.Format(FeeModel.Default.NetFromGross(value), currency)
+            : MoneyFormatter.Placeholder;
+        _salesHistory = null;
+
+        await LoadSupplementalDataAsync(marketHashName);
+    }
+
+    private async Task LoadSupplementalDataAsync(string marketHashName)
+    {
+        await LoadHistoryAsync(marketHashName);
+        await LoadSteamMarketAsync(marketHashName);
+        await LoadOtherSourcesAsync(marketHashName);
     }
 
     partial void OnSelectedRangeChanged(HistoryRange value) => RebuildSeries();

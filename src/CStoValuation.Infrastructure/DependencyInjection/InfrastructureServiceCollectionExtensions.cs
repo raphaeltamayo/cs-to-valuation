@@ -2,6 +2,7 @@ using System.Net;
 using System.Runtime.Versioning;
 using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Services;
+using CStoValuation.Infrastructure.Catalog;
 using CStoValuation.Infrastructure.Persistence;
 using CStoValuation.Infrastructure.Pricing;
 using CStoValuation.Infrastructure.Settings;
@@ -21,6 +22,7 @@ public static class InfrastructureServiceCollectionExtensions
     private const string PriceEmpireBaseUrl = "https://api.pricempire.com/";
     private const string CsFloatBaseUrl = "https://csfloat.com/";
     private const string ExchangeRateBaseUrl = "https://api.frankfurter.app/";
+    private const string CatalogBaseUrl = "https://raw.githubusercontent.com/";
 
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -40,7 +42,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ISettingsStore>(_ => new JsonSettingsStore(settingsFilePath));
         services.AddSingleton<ISteamAccountLocator, SteamAccountLocator>();
 
-        AddHttpClients(services);
+        AddHttpClients(services, settingsFilePath);
 
         services.AddSingleton<IValuationService, ValuationService>();
 
@@ -55,7 +57,7 @@ public static class InfrastructureServiceCollectionExtensions
         return services;
     }
 
-    private static void AddHttpClients(IServiceCollection services)
+    private static void AddHttpClients(IServiceCollection services, string settingsFilePath)
     {
         services.AddHttpClient<ISteamIdResolver, SteamIdResolver>(ConfigureSteamClient);
         services.AddHttpClient<ISteamInventoryService, SteamInventoryService>(ConfigureSteamClient);
@@ -122,6 +124,23 @@ public static class InfrastructureServiceCollectionExtensions
                 provider.GetRequiredService<TimeProvider>());
         });
         services.AddSingleton<IPriceProvider>(provider => provider.GetRequiredService<PriceEmpirePriceProvider>());
+
+        services.AddHttpClient(CatalogService.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri(CatalogBaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        });
+
+        var catalogCachePath = Path.Combine(Path.GetDirectoryName(settingsFilePath)!, "catalog.json");
+        services.AddSingleton<ICatalogService>(provider =>
+        {
+            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+            return new CatalogService(
+                httpClientFactory.CreateClient(CatalogService.HttpClientName),
+                catalogCachePath,
+                provider.GetRequiredService<TimeProvider>());
+        });
     }
 
     private static void ConfigureSteamClient(HttpClient client)

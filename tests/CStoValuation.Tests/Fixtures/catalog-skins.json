@@ -1,0 +1,17 @@
+[
+  {
+    "id": "skin-1",
+    "market_hash_name": "AK-47 | Redline (Field-Tested)",
+    "image": "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/ak47.png"
+  },
+  {
+    "id": "skin-2",
+    "market_hash_name": "AWP | Asiimov (Field-Tested)",
+    "image": "https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/awp.png"
+  },
+  {
+    "id": "skin-3",
+    "market_hash_name": null,
+    "image": "https://example.com/none.png"
+  }
+]
