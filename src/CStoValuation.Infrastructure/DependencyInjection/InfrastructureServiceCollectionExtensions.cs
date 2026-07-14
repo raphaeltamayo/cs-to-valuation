@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.Versioning;
 using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Services;
 using CStoValuation.Infrastructure.Persistence;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CStoValuation.Infrastructure.DependencyInjection;
 
+[SupportedOSPlatform("windows")]
 public static class InfrastructureServiceCollectionExtensions
 {
     private const string SteamCommunityBaseUrl = "https://steamcommunity.com/";
@@ -33,6 +35,7 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<ISteamSession, SteamSession>();
         services.AddSingleton<ISettingsStore>(_ => new JsonSettingsStore(settingsFilePath));
+        services.AddSingleton<ISteamAccountLocator, SteamAccountLocator>();
 
         AddHttpClients(services);
 
@@ -55,6 +58,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddHttpClient<ISteamInventoryService, SteamInventoryService>(ConfigureSteamClient);
         services.AddHttpClient<ISteamMarketPriceService, SteamMarketPriceService>(ConfigureSteamClient);
         services.AddHttpClient<ISteamMarketHistoryService, SteamMarketHistoryService>(ConfigureSteamClient);
+        services.AddHttpClient<ISteamProfileService, SteamProfileService>(ConfigureSteamClient);
 
         services.AddHttpClient(SkinportPriceService.HttpClientName, client =>
             {

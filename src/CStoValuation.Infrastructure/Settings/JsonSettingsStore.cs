@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Models;
 
@@ -6,7 +7,11 @@ namespace CStoValuation.Infrastructure.Settings;
 
 public sealed class JsonSettingsStore : ISettingsStore
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     private readonly string _filePath;
     private readonly SemaphoreSlim _gate = new(1, 1);

@@ -30,6 +30,8 @@ public partial class App : Application
         await MigrateDatabaseAsync();
 
         _host.Services.GetRequiredService<MainWindow>().Show();
+
+        _ = _host.Services.GetRequiredService<InventoryPageViewModel>().InitializeAsync();
     }
 
     protected override async void OnExit(ExitEventArgs e)

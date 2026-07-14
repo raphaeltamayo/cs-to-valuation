@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -65,8 +66,33 @@
             </TextBlock.Style>
         </TextBlock>
 
+        <!-- ===== Detected local Steam accounts: one-click connect ===== -->
+        <ItemsControl Grid.Row="1" Margin="0,10,0,0" ItemsSource="{Binding LocalAccounts}"
+                      Visibility="{Binding LocalAccounts.Count, Converter={StaticResource CountToVisibility}}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Margin="0,0,10,0"
+                            Command="{Binding DataContext.ConnectAsLocalAccountCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            ToolTip="Continue with this Steam account">
+                        <StackPanel Orientation="Horizontal">
+                            <Image behaviors:ImageLoader.SourceUrl="{Binding AvatarUrl}"
+                                   Width="20" Height="20" Stretch="Uniform" />
+                            <TextBlock Text="{Binding DisplayName}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
         <!-- ===== Summary panel ===== -->
-        <Border Grid.Row="1" Margin="0,16,0,0"
+        <Border Grid.Row="2" Margin="0,16,0,0"
                 Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="22,18">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -130,7 +156,7 @@
         </Border>
 
         <!-- ===== Private-inventory / error banner ===== -->
-        <Border Grid.Row="2" Margin="0,12,0,0"
+        <Border Grid.Row="3" Margin="0,12,0,0"
                 Background="{StaticResource SurfaceMutedBrush}" CornerRadius="8" Padding="16,12"
                 Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"
@@ -138,7 +164,7 @@
         </Border>
 
         <!-- ===== Status + progress ===== -->
-        <Grid Grid.Row="3" Margin="2,12,2,0">
+        <Grid Grid.Row="4" Margin="2,12,2,0">
             <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedTextBrush}"
                        VerticalAlignment="Center" />
             <ProgressBar Height="3" IsIndeterminate="True" BorderThickness="0"
@@ -148,7 +174,7 @@
         </Grid>
 
         <!-- ===== Content: inventory grid (left) + detail & movers (right) ===== -->
-        <Grid Grid.Row="4" Margin="0,12,0,0">
+        <Grid Grid.Row="5" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="380" />

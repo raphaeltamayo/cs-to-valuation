@@ -22,9 +22,13 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISteamSignIn _steamSignIn;
     private readonly ISkinportSalesHistoryService _salesHistoryService;
+    private readonly ISettingsStore _settingsStore;
+    private readonly ISteamAccountLocator _accountLocator;
+    private readonly ISteamProfileService _profileService;
     private readonly FeeModel _feeModel = FeeModel.Default;
 
     private string? _lastResolvedId;
+    private AppSettings _settings = AppSettings.Default;
 
     private IReadOnlyDictionary<string, ItemSalesHistory> _salesHistory =
         new Dictionary<string, ItemSalesHistory>();
@@ -70,6 +74,9 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
         IInventoryRepository inventoryRepository,
         ISteamSignIn steamSignIn,
         ISkinportSalesHistoryService salesHistoryService,
+        ISettingsStore settingsStore,
+        ISteamAccountLocator accountLocator,
+        ISteamProfileService profileService,
         ItemDetailViewModel detail,
         MoversViewModel movers)
     {
@@ -80,6 +87,9 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
         _inventoryRepository = inventoryRepository;
         _steamSignIn = steamSignIn;
         _salesHistoryService = salesHistoryService;
+        _settingsStore = settingsStore;
+        _accountLocator = accountLocator;
+        _profileService = profileService;
         Detail = detail;
         Movers = movers;
 
@@ -90,6 +100,8 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
     }
 
     public ObservableCollection<ValuedItemViewModel> Items { get; } = [];
+
+    public ObservableCollection<LocalAccountViewModel> LocalAccounts { get; } = [];
 
     public ICollectionView ItemsView { get; }
 
@@ -105,6 +117,39 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
 
     partial void OnSelectedItemChanged(ValuedItemViewModel? value) =>
         _ = Detail.LoadAsync(value, value is null ? null : _salesHistory.GetValueOrDefault(value.Name));
+
+    public async Task InitializeAsync()
+    {
+        _settings = await _settingsStore.LoadAsync();
+
+        _ = LoadLocalAccountsAsync();
+
+        if (!string.IsNullOrWhiteSpace(_settings.LastSteamId64))
+        {
+            SteamInput = _settings.LastSteamId64;
+            await LoadAsync(useCachedId: false);
+        }
+    }
+
+    private async Task LoadLocalAccountsAsync()
+    {
+        var detected = _accountLocator.GetLocalAccounts();
+        LocalAccounts.Clear();
+
+        foreach (var account in detected.Take(3))
+        {
+            var profile = await _profileService.GetProfileAsync(account.SteamId64);
+            var displayName = profile?.PersonaName ?? account.PersonaName ?? account.SteamId64;
+            LocalAccounts.Add(new LocalAccountViewModel(account.SteamId64, displayName, profile?.AvatarUrl));
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private Task ConnectAsLocalAccountAsync(LocalAccountViewModel account)
+    {
+        SteamInput = account.SteamId64;
+        return LoadAsync(useCachedId: false);
+    }
 
     [RelayCommand(CanExecute = nameof(CanConnect))]
     private Task ConnectAsync() => LoadAsync(useCachedId: false);
@@ -156,6 +201,8 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
 
             _salesHistory = await FetchSalesHistoryAsync();
             Movers.Load(_salesHistory, Items);
+
+            await RememberAccountAsync(steamId);
         }
         catch (PrivateInventoryException)
         {
@@ -181,6 +228,24 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
         {
             IsBusy = false;
             RefreshCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private async Task RememberAccountAsync(string steamId)
+    {
+        try
+        {
+            var profile = await _profileService.GetProfileAsync(steamId);
+            _settings = _settings with
+            {
+                LastSteamId64 = steamId,
+                PersonaName = profile?.PersonaName ?? _settings.PersonaName,
+                AvatarUrl = profile?.AvatarUrl ?? _settings.AvatarUrl,
+            };
+            await _settingsStore.SaveAsync(_settings);
+        }
+        catch (Exception)
+        {
         }
     }
 

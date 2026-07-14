@@ -11,6 +11,7 @@
 
             <!-- ===== Converters ===== -->
             <converters:RarityToBrushConverter x:Key="RarityToBrush" />
+            <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
             <!-- ===== Pages (mapped from the shell's CurrentPage view-model) ===== -->
