@@ -3,13 +3,114 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
              xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:PerformancePageViewModel}">
 
-    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="22">
-        <TextBlock Text="Inventory performance is coming soon."
-                   Foreground="{StaticResource MutedTextBrush}"
-                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-    </Border>
+    <Grid>
+        <!-- Empty state -->
+        <TextBlock Text="Connect an inventory on the Inventory page to see its performance here."
+                   Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasData}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <StackPanel Visibility="{Binding HasData, Converter={StaticResource BoolToVisibility}}">
+            <!-- ===== Delta chips ===== -->
+            <UniformGrid Columns="3" Rows="1">
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="20,16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="LAST 24 HOURS" FontSize="11" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding Delta24HoursText}" FontSize="22" FontWeight="Bold" Margin="0,6,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDelta24HoursPositive}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource PositiveBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="20,16" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="LAST 7 DAYS" FontSize="11" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding Delta7DaysText}" FontSize="22" FontWeight="Bold" Margin="0,6,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDelta7DaysPositive}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource PositiveBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="20,16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="LAST 30 DAYS" FontSize="11" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding Delta30DaysText}" FontSize="22" FontWeight="Bold" Margin="0,6,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDelta30DaysPositive}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource PositiveBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ===== Portfolio value chart ===== -->
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="20" Margin="0,16,0,0">
+                <Grid>
+                    <TextBlock Text="PORTFOLIO VALUE (NET, LAST 90 DAYS)" FontSize="11" Margin="0,0,0,10"
+                               VerticalAlignment="Top" Foreground="{StaticResource MutedTextBrush}" />
+                    <Grid Height="260" Margin="0,26,0,0">
+                        <lvc:CartesianChart Series="{Binding Series}"
+                                            XAxes="{Binding XAxes}"
+                                            YAxes="{Binding YAxes}"
+                                            Background="Transparent"
+                                            Visibility="{Binding HasChart, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Text="Not enough history yet — check back after a few days of use."
+                                   Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasChart}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Grid>
 </UserControl>

@@ -48,6 +48,7 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<IInventoryRepository, InventoryRepository>();
         services.AddSingleton<IPriceSnapshotRepository, PriceSnapshotRepository>();
+        services.AddSingleton<IPortfolioSnapshotRepository, PortfolioSnapshotRepository>();
 
         services.AddSingleton<IPriceProvider, SkinportPriceProvider>();
         services.AddSingleton<IPriceAggregator, PriceAggregator>();

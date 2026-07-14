@@ -16,6 +16,7 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
     private readonly IPriceAggregator _priceAggregator;
     private readonly IPriceSnapshotRepository _snapshotRepository;
+    private readonly IPortfolioSnapshotRepository _portfolioSnapshotRepository;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<PriceSnapshotBackgroundService> _logger;
 
@@ -23,12 +24,14 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
         IDbContextFactory<AppDbContext> contextFactory,
         IPriceAggregator priceAggregator,
         IPriceSnapshotRepository snapshotRepository,
+        IPortfolioSnapshotRepository portfolioSnapshotRepository,
         ILogger<PriceSnapshotBackgroundService> logger,
         TimeProvider? timeProvider = null)
     {
         _contextFactory = contextFactory;
         _priceAggregator = priceAggregator;
         _snapshotRepository = snapshotRepository;
+        _portfolioSnapshotRepository = portfolioSnapshotRepository;
         _logger = logger;
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -55,8 +58,8 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
     {
         try
         {
-            var ownedNames = await GetOwnedNamesAsync(cancellationToken).ConfigureAwait(false);
-            if (ownedNames.Count == 0)
+            var ownedQuantities = await GetOwnedQuantitiesAsync(cancellationToken).ConfigureAwait(false);
+            if (ownedQuantities.Count == 0)
             {
                 return;
             }
@@ -66,12 +69,15 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
 
             var snapshots = new List<PriceSnapshot>();
             var historyPoints = new List<PriceHistoryPoint>();
-            foreach (var name in ownedNames)
+            decimal portfolioGross = 0m;
+            foreach (var (name, quantity) in ownedQuantities)
             {
                 if (!prices.TryGetValue(name, out var quote))
                 {
                     continue;
                 }
+
+                portfolioGross += quote.Gross * quantity;
 
                 snapshots.Add(new PriceSnapshot
                 {
@@ -99,6 +105,8 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
             await _snapshotRepository.AddSnapshotsAsync(snapshots, cancellationToken).ConfigureAwait(false);
             await _snapshotRepository.AddHistoryPointsAsync(historyPoints, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Recorded {Count} price snapshots.", snapshots.Count);
+
+            await RecordPortfolioSnapshotIfNeededAsync(portfolioGross, takenUtc, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -106,14 +114,36 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
         }
     }
 
-    private async Task<IReadOnlyList<string>> GetOwnedNamesAsync(CancellationToken cancellationToken)
+    private async Task RecordPortfolioSnapshotIfNeededAsync(
+        decimal totalGross, DateTimeOffset takenUtc, CancellationToken cancellationToken)
+    {
+        var latest = await _portfolioSnapshotRepository.GetLatestSnapshotAsync(cancellationToken).ConfigureAwait(false);
+        if (latest is not null && latest.TakenUtc.UtcDateTime.Date == takenUtc.UtcDateTime.Date)
+        {
+            return;
+        }
+
+        await _portfolioSnapshotRepository.AddSnapshotAsync(
+            new PortfolioSnapshot
+            {
+                TotalGross = totalGross,
+                TotalNet = FeeModel.Default.NetFromGross(totalGross),
+                Currency = Currency,
+                TakenUtc = takenUtc,
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("Recorded a daily portfolio snapshot ({Total} {Currency} gross).", totalGross, Currency);
+    }
+
+    private async Task<IReadOnlyDictionary<string, int>> GetOwnedQuantitiesAsync(CancellationToken cancellationToken)
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
         return await context.InventoryItems
             .AsNoTracking()
-            .Select(item => item.MarketHashName)
-            .Distinct()
-            .ToListAsync(cancellationToken)
+            .GroupBy(item => item.MarketHashName)
+            .Select(group => new { Name = group.Key, Quantity = group.Sum(item => item.Quantity) })
+            .ToDictionaryAsync(x => x.Name, x => x.Quantity, cancellationToken)
             .ConfigureAwait(false);
     }
 }

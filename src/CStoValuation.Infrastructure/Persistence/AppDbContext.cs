@@ -16,6 +16,8 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<PriceHistoryPoint> PriceHistoryPoints => Set<PriceHistoryPoint>();
 
+    public DbSet<PortfolioSnapshot> PortfolioSnapshots => Set<PortfolioSnapshot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

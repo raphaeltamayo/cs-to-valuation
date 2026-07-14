@@ -99,6 +99,45 @@ public class RepositoryTests : IDisposable
         Assert.Equal(12m, latest!.Min);
     }
 
+    [Fact]
+    public async Task Portfolio_history_is_returned_in_time_order_and_filtered_by_since()
+    {
+        var repository = new PortfolioSnapshotRepository(_factory);
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 300m, TakenUtc = Day(3) });
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 100m, TakenUtc = Day(1) });
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 200m, TakenUtc = Day(2) });
+
+        var history = await repository.GetHistoryAsync(Day(2));
+
+        Assert.Equal(2, history.Count);
+        Assert.Equal(200m, history[0].TotalNet);
+        Assert.Equal(300m, history[1].TotalNet);
+    }
+
+    [Fact]
+    public async Task Portfolio_latest_snapshot_returns_the_most_recent_one()
+    {
+        var repository = new PortfolioSnapshotRepository(_factory);
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 100m, TakenUtc = Day(1) });
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 300m, TakenUtc = Day(3) });
+        await repository.AddSnapshotAsync(new PortfolioSnapshot { TotalNet = 200m, TakenUtc = Day(2) });
+
+        var latest = await repository.GetLatestSnapshotAsync();
+
+        Assert.NotNull(latest);
+        Assert.Equal(300m, latest!.TotalNet);
+    }
+
+    [Fact]
+    public async Task Portfolio_latest_snapshot_is_null_when_none_exist()
+    {
+        var repository = new PortfolioSnapshotRepository(_factory);
+
+        var latest = await repository.GetLatestSnapshotAsync();
+
+        Assert.Null(latest);
+    }
+
     private static InventoryItem Item(string name) => new()
     {
         AssetId = "a", ClassId = "c", InstanceId = "0", MarketHashName = name, Quantity = 1,

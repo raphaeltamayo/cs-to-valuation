@@ -109,6 +109,12 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
 
     public MoversViewModel Movers { get; }
 
+    /// <summary>The most recently computed valuation, read by the Performance page for its deltas.</summary>
+    public InventoryValuation? LastValuation { get; private set; }
+
+    /// <summary>The sales history behind <see cref="LastValuation"/>, keyed by market hash name.</summary>
+    public IReadOnlyDictionary<string, ItemSalesHistory> LastSalesHistory => _salesHistory;
+
     public bool IsNotBusy => !IsBusy;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
@@ -316,6 +322,8 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
 
     private void ShowValuation(InventoryValuation valuation)
     {
+        LastValuation = valuation;
+
         Items.Clear();
         foreach (var item in valuation.Items)
         {

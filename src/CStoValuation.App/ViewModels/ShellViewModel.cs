@@ -31,9 +31,14 @@ internal sealed partial class ShellViewModel : ObservableObject
 
     partial void OnSelectedNavItemChanged(NavItem value)
     {
-        if (value.Page is CatalogPageViewModel catalogPage)
+        switch (value.Page)
         {
-            _ = catalogPage.InitializeAsync();
+            case CatalogPageViewModel catalogPage:
+                _ = catalogPage.InitializeAsync();
+                break;
+            case PerformancePageViewModel performancePage:
+                _ = performancePage.InitializeAsync();
+                break;
         }
     }
 }
