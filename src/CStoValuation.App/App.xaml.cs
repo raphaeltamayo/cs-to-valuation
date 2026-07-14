@@ -32,6 +32,7 @@ public partial class App : Application
         _host.Services.GetRequiredService<MainWindow>().Show();
 
         _ = _host.Services.GetRequiredService<InventoryPageViewModel>().InitializeAsync();
+        _ = _host.Services.GetRequiredService<SettingsPageViewModel>().InitializeAsync();
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -65,6 +66,7 @@ internal static class HostBuilderExtensions
         builder.Services.AddSingleton<InventoryPageViewModel>();
         builder.Services.AddSingleton<CatalogPageViewModel>();
         builder.Services.AddSingleton<PerformancePageViewModel>();
+        builder.Services.AddSingleton<SettingsPageViewModel>();
         builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 

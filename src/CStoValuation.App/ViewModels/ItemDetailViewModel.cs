@@ -2,6 +2,7 @@ using System.Net.Http;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CStoValuation.App.Presentation;
 using CStoValuation.Core.Abstractions;
+using CStoValuation.Core.Enums;
 using CStoValuation.Core.Models;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -24,6 +25,10 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
 
     private readonly ISteamMarketHistoryService _historyService;
     private readonly ISteamMarketPriceService _steamMarketService;
+    private readonly IPriceAggregator _priceAggregator;
+    private readonly ICsFloatPriceService _csFloatPriceService;
+    private readonly IExchangeRateService _exchangeRateService;
+    private readonly ISettingsStore _settingsStore;
     private readonly TimeProvider _timeProvider;
 
     private IReadOnlyList<PriceHistoryPoint> _fullHistory = [];
@@ -38,6 +43,10 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
     [ObservableProperty] private string _steamPriceText = MoneyFormatter.Placeholder;
     [ObservableProperty] private string _steamVolumeText = MoneyFormatter.Placeholder;
     [ObservableProperty] private bool _isLoadingSteamPrice;
+    [ObservableProperty] private bool _isPriceEmpireEnabled;
+    [ObservableProperty] private string _priceEmpireGrossText = MoneyFormatter.Placeholder;
+    [ObservableProperty] private bool _isCsFloatEnabled;
+    [ObservableProperty] private string _csFloatPriceText = MoneyFormatter.Placeholder;
     [ObservableProperty] private bool _hasHistory;
     [ObservableProperty] private ISeries[] _series = [];
     [ObservableProperty] private HistoryRange _selectedRange;
@@ -45,10 +54,18 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
     public ItemDetailViewModel(
         ISteamMarketHistoryService historyService,
         ISteamMarketPriceService steamMarketService,
+        IPriceAggregator priceAggregator,
+        ICsFloatPriceService csFloatPriceService,
+        IExchangeRateService exchangeRateService,
+        ISettingsStore settingsStore,
         TimeProvider? timeProvider = null)
     {
         _historyService = historyService;
         _steamMarketService = steamMarketService;
+        _priceAggregator = priceAggregator;
+        _csFloatPriceService = csFloatPriceService;
+        _exchangeRateService = exchangeRateService;
+        _settingsStore = settingsStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
 
         _selectedRange = Ranges[1];
@@ -85,6 +102,7 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
 
         await LoadHistoryAsync(item.Name);
         await LoadSteamMarketAsync(item.Name);
+        await LoadOtherSourcesAsync(item.Name);
     }
 
     partial void OnSelectedRangeChanged(HistoryRange value) => RebuildSeries();
@@ -192,6 +210,48 @@ internal sealed partial class ItemDetailViewModel : ObservableObject
         finally
         {
             IsLoadingSteamPrice = false;
+        }
+    }
+
+    private async Task LoadOtherSourcesAsync(string marketHashName)
+    {
+        var settings = await _settingsStore.LoadAsync();
+        IsPriceEmpireEnabled = settings.EnabledPriceSources.Contains(PriceSource.PriceEmpire);
+        IsCsFloatEnabled = settings.IsCsFloatEnabled;
+
+        PriceEmpireGrossText = MoneyFormatter.Placeholder;
+        if (IsPriceEmpireEnabled)
+        {
+            try
+            {
+                var quotes = await _priceAggregator.GetAllSourceQuotesAsync(marketHashName, Currency);
+                PriceEmpireGrossText = quotes.TryGetValue(PriceSource.PriceEmpire, out var quote)
+                    ? MoneyFormatter.Format(quote.Gross, Currency)
+                    : MoneyFormatter.Placeholder;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                PriceEmpireGrossText = "unavailable";
+            }
+        }
+
+        CsFloatPriceText = MoneyFormatter.Placeholder;
+        if (IsCsFloatEnabled)
+        {
+            try
+            {
+                var csFloatQuote = await _csFloatPriceService.GetPriceOverviewAsync(marketHashName);
+                if (csFloatQuote is not null)
+                {
+                    var converted = await _exchangeRateService.ConvertAsync(
+                        csFloatQuote.Gross, csFloatQuote.Currency, Currency);
+                    CsFloatPriceText = MoneyFormatter.Format(converted, Currency);
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException)
+            {
+                CsFloatPriceText = "unavailable";
+            }
         }
     }
 

@@ -1,0 +1,16 @@
+[
+  {
+    "market_hash_name": "AK-47 | Redline (Field-Tested)",
+    "image": "https://example.com/ak47.png",
+    "prices": [
+      { "provider_key": "steam", "price": 15.00, "count": 20, "updated_at": "2026-01-01T00:00:00Z" },
+      { "provider_key": "buff163", "price": 12.34, "count": 8, "updated_at": "2026-01-02T00:00:00Z" },
+      { "provider_key": "dmarket", "price": 13.50, "count": 4, "updated_at": "2026-01-01T12:00:00Z" }
+    ]
+  },
+  {
+    "market_hash_name": "No Prices Item",
+    "image": "https://example.com/none.png",
+    "prices": []
+  }
+]

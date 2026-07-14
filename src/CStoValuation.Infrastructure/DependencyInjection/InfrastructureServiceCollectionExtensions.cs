@@ -18,6 +18,9 @@ public static class InfrastructureServiceCollectionExtensions
 {
     private const string SteamCommunityBaseUrl = "https://steamcommunity.com/";
     private const string SkinportBaseUrl = "https://api.skinport.com/";
+    private const string PriceEmpireBaseUrl = "https://api.pricempire.com/";
+    private const string CsFloatBaseUrl = "https://csfloat.com/";
+    private const string ExchangeRateBaseUrl = "https://api.frankfurter.app/";
 
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -60,6 +63,20 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddHttpClient<ISteamMarketHistoryService, SteamMarketHistoryService>(ConfigureSteamClient);
         services.AddHttpClient<ISteamProfileService, SteamProfileService>(ConfigureSteamClient);
 
+        services.AddHttpClient<ICsFloatPriceService, CsFloatPriceService>(client =>
+        {
+            client.BaseAddress = new Uri(CsFloatBaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        });
+
+        services.AddHttpClient<IExchangeRateService, ExchangeRateService>(client =>
+        {
+            client.BaseAddress = new Uri(ExchangeRateBaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        });
+
         services.AddHttpClient(SkinportPriceService.HttpClientName, client =>
             {
                 client.BaseAddress = new Uri(SkinportBaseUrl);
@@ -88,6 +105,23 @@ public static class InfrastructureServiceCollectionExtensions
                 httpClientFactory.CreateClient(SkinportPriceService.HttpClientName),
                 provider.GetRequiredService<TimeProvider>());
         });
+
+        services.AddHttpClient(PriceEmpirePriceProvider.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri(PriceEmpireBaseUrl);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        }).AddStandardResilienceHandler();
+
+        services.AddSingleton<PriceEmpirePriceProvider>(provider =>
+        {
+            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+            return new PriceEmpirePriceProvider(
+                httpClientFactory.CreateClient(PriceEmpirePriceProvider.HttpClientName),
+                provider.GetRequiredService<ISettingsStore>(),
+                provider.GetRequiredService<TimeProvider>());
+        });
+        services.AddSingleton<IPriceProvider>(provider => provider.GetRequiredService<PriceEmpirePriceProvider>());
     }
 
     private static void ConfigureSteamClient(HttpClient client)

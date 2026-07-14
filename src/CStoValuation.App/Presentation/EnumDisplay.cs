@@ -26,4 +26,13 @@ internal static class EnumDisplay
         Exterior.BattleScarred => "Battle-Scarred",
         _ => string.Empty,
     };
+
+    public static string ToLabel(this PriceSource source) => source switch
+    {
+        PriceSource.Skinport => "Skinport",
+        PriceSource.SteamMarket => "Steam Market",
+        PriceSource.PriceEmpire => "PriceEmpire",
+        PriceSource.CsFloat => "CSFloat",
+        _ => string.Empty,
+    };
 }

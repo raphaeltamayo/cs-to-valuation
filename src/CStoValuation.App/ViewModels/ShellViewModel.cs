@@ -11,13 +11,15 @@ internal sealed partial class ShellViewModel : ObservableObject
     public ShellViewModel(
         InventoryPageViewModel inventoryPage,
         CatalogPageViewModel catalogPage,
-        PerformancePageViewModel performancePage)
+        PerformancePageViewModel performancePage,
+        SettingsPageViewModel settingsPage)
     {
         NavItems =
         [
             new NavItem("Inventory", inventoryPage),
             new NavItem("Catalog", catalogPage),
             new NavItem("Performance", performancePage),
+            new NavItem("Settings", settingsPage),
         ];
 
         _selectedNavItem = NavItems[0];

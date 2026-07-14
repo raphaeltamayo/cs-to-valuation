@@ -46,6 +46,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Skinport (gross)"
@@ -67,6 +69,20 @@
                         <TextBlock Text=" · " Foreground="{StaticResource MutedTextBrush}" />
                         <TextBlock Text="{Binding SteamVolumeText}" Foreground="{StaticResource MutedTextBrush}" />
                     </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="PriceEmpire (gross)"
+                               Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,6,0,0"
+                               Visibility="{Binding IsPriceEmpireEnabled, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PriceEmpireGrossText}"
+                               HorizontalAlignment="Right" Margin="0,6,0,0"
+                               Visibility="{Binding IsPriceEmpireEnabled, Converter={StaticResource BoolToVisibility}}" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="CSFloat (gross)"
+                               Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,6,0,0"
+                               Visibility="{Binding IsCsFloatEnabled, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CsFloatPriceText}"
+                               HorizontalAlignment="Right" Margin="0,6,0,0"
+                               Visibility="{Binding IsCsFloatEnabled, Converter={StaticResource BoolToVisibility}}" />
                 </Grid>
 
                 <!-- Price history chart -->

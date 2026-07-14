@@ -18,5 +18,7 @@ public sealed record AppSettings
 
     public string? PriceEmpireApiKey { get; init; }
 
+    public bool IsCsFloatEnabled { get; init; } = true;
+
     public static AppSettings Default { get; } = new();
 }
