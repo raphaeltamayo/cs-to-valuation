@@ -18,10 +18,11 @@ internal static class TestData
         Exterior = Exterior.FieldTested,
     };
 
-    public static PriceQuote Quote(string marketHashName, decimal gross, string currency = "EUR") => new()
+    public static PriceQuote Quote(
+        string marketHashName, decimal gross, string currency = "EUR", PriceSource source = PriceSource.Skinport) => new()
     {
         MarketHashName = marketHashName,
-        Source = PriceSource.Skinport,
+        Source = source,
         Currency = currency,
         Gross = gross,
         AsOfUtc = DateTimeOffset.UnixEpoch,

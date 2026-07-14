@@ -1,5 +1,4 @@
 using CStoValuation.Core.Abstractions;
-using CStoValuation.Core.Enums;
 using CStoValuation.Core.Models;
 using CStoValuation.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -15,20 +14,20 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
 
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
-    private readonly ISkinportPriceService _priceService;
+    private readonly IPriceAggregator _priceAggregator;
     private readonly IPriceSnapshotRepository _snapshotRepository;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<PriceSnapshotBackgroundService> _logger;
 
     public PriceSnapshotBackgroundService(
         IDbContextFactory<AppDbContext> contextFactory,
-        ISkinportPriceService priceService,
+        IPriceAggregator priceAggregator,
         IPriceSnapshotRepository snapshotRepository,
         ILogger<PriceSnapshotBackgroundService> logger,
         TimeProvider? timeProvider = null)
     {
         _contextFactory = contextFactory;
-        _priceService = priceService;
+        _priceAggregator = priceAggregator;
         _snapshotRepository = snapshotRepository;
         _logger = logger;
         _timeProvider = timeProvider ?? TimeProvider.System;
@@ -62,7 +61,7 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
                 return;
             }
 
-            var prices = await _priceService.GetPricesAsync(Currency, cancellationToken).ConfigureAwait(false);
+            var prices = await _priceAggregator.GetPrimaryPricesAsync(Currency, cancellationToken).ConfigureAwait(false);
             var takenUtc = _timeProvider.GetUtcNow();
 
             var snapshots = new List<PriceSnapshot>();
@@ -77,7 +76,7 @@ public sealed class PriceSnapshotBackgroundService : BackgroundService
                 snapshots.Add(new PriceSnapshot
                 {
                     MarketHashName = name,
-                    Source = PriceSource.Skinport,
+                    Source = quote.Source,
                     Min = quote.Gross,
                     Listings = quote.Listings,
                     Currency = quote.Currency,

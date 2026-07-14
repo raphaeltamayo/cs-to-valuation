@@ -51,24 +51,30 @@ internal static class HostBuilderExtensions
 {
     public static HostApplicationBuilder ConfigureServices(this HostApplicationBuilder builder)
     {
-        builder.Services.AddInfrastructure($"Data Source={ResolveDatabasePath()}");
+        var appDataFolder = ResolveAppDataFolder();
+        builder.Services.AddInfrastructure(
+            $"Data Source={Path.Combine(appDataFolder, "app.db")}",
+            Path.Combine(appDataFolder, "settings.json"));
 
         builder.Services.AddSingleton<ISteamSignIn, SteamOpenIdSignIn>();
 
         builder.Services.AddTransient<ItemDetailViewModel>();
         builder.Services.AddTransient<MoversViewModel>();
-        builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddSingleton<InventoryPageViewModel>();
+        builder.Services.AddSingleton<CatalogPageViewModel>();
+        builder.Services.AddSingleton<PerformancePageViewModel>();
+        builder.Services.AddSingleton<ShellViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 
         return builder;
     }
 
-    private static string ResolveDatabasePath()
+    private static string ResolveAppDataFolder()
     {
         var folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "CStoValuation");
         Directory.CreateDirectory(folder);
-        return Path.Combine(folder, "app.db");
+        return folder;
     }
 }

@@ -6,7 +6,7 @@
              xmlns:behaviors="clr-namespace:CStoValuation.App.Behaviors"
              xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+             d:DataContext="{d:DesignInstance Type=vm:InventoryPageViewModel}">
 
     <UserControl.Resources>
         <!-- Column headers -->

@@ -5,7 +5,7 @@ namespace CStoValuation.App.Views;
 
 internal partial class MainWindow : Window
 {
-    public MainWindow(MainViewModel viewModel)
+    public MainWindow(ShellViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;

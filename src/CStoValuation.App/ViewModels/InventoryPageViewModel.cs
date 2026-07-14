@@ -11,13 +11,13 @@ using CStoValuation.Core.Models;
 
 namespace CStoValuation.App.ViewModels;
 
-internal sealed partial class MainViewModel : ObservableObject
+internal sealed partial class InventoryPageViewModel : ObservableObject
 {
     private const string Currency = "EUR";
 
     private readonly ISteamIdResolver _idResolver;
     private readonly ISteamInventoryService _inventoryService;
-    private readonly ISkinportPriceService _priceService;
+    private readonly IPriceAggregator _priceAggregator;
     private readonly IValuationService _valuationService;
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISteamSignIn _steamSignIn;
@@ -62,10 +62,10 @@ internal sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _searchText = string.Empty;
 
-    public MainViewModel(
+    public InventoryPageViewModel(
         ISteamIdResolver idResolver,
         ISteamInventoryService inventoryService,
-        ISkinportPriceService priceService,
+        IPriceAggregator priceAggregator,
         IValuationService valuationService,
         IInventoryRepository inventoryRepository,
         ISteamSignIn steamSignIn,
@@ -75,7 +75,7 @@ internal sealed partial class MainViewModel : ObservableObject
     {
         _idResolver = idResolver;
         _inventoryService = inventoryService;
-        _priceService = priceService;
+        _priceAggregator = priceAggregator;
         _valuationService = valuationService;
         _inventoryRepository = inventoryRepository;
         _steamSignIn = steamSignIn;
@@ -218,8 +218,8 @@ internal sealed partial class MainViewModel : ObservableObject
     {
         try
         {
-            StatusMessage = "Fetching market prices from Skinport…";
-            return await _priceService.GetPricesAsync(Currency);
+            StatusMessage = "Fetching market prices…";
+            return await _priceAggregator.GetPrimaryPricesAsync(Currency);
         }
         catch (Exception)
         {
@@ -262,8 +262,8 @@ internal sealed partial class MainViewModel : ObservableObject
 
         if (_pricesUnavailable)
         {
-            return "Inventory loaded, but Skinport prices are unavailable " +
-                   "(it may be blocked on your network) — showing items unvalued.";
+            return "Inventory loaded, but prices are unavailable " +
+                   "(the pricing source may be blocked on your network) — showing items unvalued.";
         }
 
         var summary = $"Valued {valuation.PricedCount} of {valuation.Items.Count} items.";

@@ -3,8 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:behaviors="clr-namespace:CStoValuation.App.Behaviors"
-        xmlns:views="clr-namespace:CStoValuation.App.Views"
         xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
         mc:Ignorable="d"
         x:ClassModifier="internal"
@@ -12,163 +10,61 @@
         Height="760" Width="1180"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}"
-        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+        d:DataContext="{d:DesignInstance Type=vm:ShellViewModel}">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <!-- ===== Connect bar ===== -->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!-- ===== Nav sidebar ===== -->
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}">
+            <StackPanel Margin="0,24,0,0">
+                <TextBlock Text="CS2 VALUATOR" FontSize="12" FontWeight="Bold" Margin="20,0,0,20"
+                           Foreground="{StaticResource MutedTextBrush}" />
 
-            <TextBox Grid.Column="0"
-                     Text="{Binding SteamInput, UpdateSourceTrigger=PropertyChanged}"
-                     IsEnabled="{Binding IsNotBusy}"
-                     FontSize="14"
-                     ToolTip="SteamID64, profile URL (/profiles/…), or custom URL (/id/…)" />
-
-            <Button Grid.Column="1" Margin="10,0,0,0"
-                    Style="{StaticResource AccentButton}"
-                    Content="Connect"
-                    Command="{Binding ConnectCommand}" />
-
-            <Button Grid.Column="2" Margin="10,0,0,0"
-                    Content="Sign in through Steam"
-                    Command="{Binding SignInWithSteamCommand}"
-                    ToolTip="Authenticate with Steam (OpenID) instead of pasting an ID" />
-
-            <Button Grid.Column="3" Margin="10,0,0,0"
-                    Content="Refresh"
-                    Command="{Binding RefreshCommand}" />
-        </Grid>
-
-        <!-- ===== Placeholder watermark over the empty text box ===== -->
-        <TextBlock Grid.Row="0"
-                   Text="Paste a SteamID64 or profile URL to begin…"
-                   Foreground="{StaticResource MutedTextBrush}"
-                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SteamInput}" Value="">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
-
-        <!-- ===== Summary panel ===== -->
-        <Border Grid.Row="1" Margin="0,16,0,0"
-                Background="{StaticResource SurfaceBrush}" CornerRadius="10" Padding="22,18">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="40" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <!-- Net value is the headline: what you'd actually realize after fees. -->
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="NET VALUE (AFTER FEES)" FontSize="11"
-                               Foreground="{StaticResource MutedTextBrush}" />
-                    <TextBlock Text="{Binding Summary.TotalNetText}" FontSize="34" FontWeight="Bold"
-                               Foreground="{StaticResource PositiveBrush}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,6">
-                    <TextBlock Text="GROSS (MARKET)" FontSize="11"
-                               Foreground="{StaticResource MutedTextBrush}" />
-                    <TextBlock Text="{Binding Summary.TotalGrossText}" FontSize="20" FontWeight="SemiBold" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom"
-                            Margin="40,0,0,4" DataContext="{Binding Summary.TopHolding}">
-                    <Image behaviors:ImageLoader.SourceUrl="{Binding ImageUrl}"
-                           Width="64" Height="40" Stretch="Uniform" VerticalAlignment="Center" />
-                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="TOP HOLDING" FontSize="11"
-                                   Foreground="{StaticResource MutedTextBrush}" />
-                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" MaxWidth="260" />
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding LineNetText}" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{StaticResource PositiveBrush}" />
-                            <TextBlock Text=" net" FontSize="12" Foreground="{StaticResource MutedTextBrush}"
-                                       VerticalAlignment="Bottom" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
+                <ListBox ItemsSource="{Binding NavItems}"
+                         SelectedItem="{Binding SelectedNavItem}"
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" Padding="20,12" FontSize="14" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Root" Background="Transparent">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Root" Property="Background"
+                                                        Value="{StaticResource SurfaceMutedBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Root" Property="Background"
+                                                        Value="{StaticResource SurfaceMutedBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
-                    </StackPanel.Style>
-                </StackPanel>
-
-                <StackPanel Grid.Column="4" VerticalAlignment="Bottom" Margin="0,0,0,6"
-                            HorizontalAlignment="Right">
-                    <TextBlock Text="{Binding Summary.Currency}" FontSize="11"
-                               Foreground="{StaticResource MutedTextBrush}" HorizontalAlignment="Right" />
-                    <TextBlock Text="{Binding Summary.CountsText}" FontSize="13"
-                               Foreground="{StaticResource MutedTextBrush}" />
-                </StackPanel>
-            </Grid>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </StackPanel>
         </Border>
 
-        <!-- ===== Private-inventory / error banner ===== -->
-        <Border Grid.Row="2" Margin="0,12,0,0"
-                Background="{StaticResource SurfaceMutedBrush}" CornerRadius="8" Padding="16,12"
-                Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"
-                       Foreground="{StaticResource DangerBrush}" />
-        </Border>
-
-        <!-- ===== Status + progress ===== -->
-        <Grid Grid.Row="3" Margin="2,12,2,0">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedTextBrush}"
-                       VerticalAlignment="Center" />
-            <ProgressBar Height="3" IsIndeterminate="True" BorderThickness="0"
-                         Background="Transparent" Foreground="{StaticResource AccentBrush}"
-                         VerticalAlignment="Bottom"
-                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
-        </Grid>
-
-        <!-- ===== Content: inventory grid (left) + detail & movers (right) ===== -->
-        <Grid Grid.Row="4" Margin="0,12,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="380" />
-            </Grid.ColumnDefinitions>
-
-            <views:InventoryView Grid.Column="0" />
-
-            <Grid Grid.Column="1" Margin="12,0,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <views:ItemDetailView Grid.Row="0" DataContext="{Binding Detail}" />
-                <views:MoversView Grid.Row="1" Margin="0,12,0,0" DataContext="{Binding Movers}" />
-            </Grid>
-        </Grid>
+        <!-- ===== Active page ===== -->
+        <ContentControl Grid.Column="1" Margin="20" Content="{Binding CurrentPage}" />
     </Grid>
 </Window>

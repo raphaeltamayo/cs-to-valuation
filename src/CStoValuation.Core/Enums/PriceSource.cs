@@ -5,4 +5,8 @@ public enum PriceSource
     Skinport,
 
     SteamMarket,
+
+    PriceEmpire,
+
+    CsFloat,
 }

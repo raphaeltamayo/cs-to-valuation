@@ -3,6 +3,7 @@ using CStoValuation.Core.Abstractions;
 using CStoValuation.Core.Services;
 using CStoValuation.Infrastructure.Persistence;
 using CStoValuation.Infrastructure.Pricing;
+using CStoValuation.Infrastructure.Settings;
 using CStoValuation.Infrastructure.Skinport;
 using CStoValuation.Infrastructure.Steam;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +22,17 @@ public static class InfrastructureServiceCollectionExtensions
         "Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0";
 
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, string sqliteConnectionString)
+        this IServiceCollection services, string sqliteConnectionString, string settingsFilePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sqliteConnectionString);
+        ArgumentException.ThrowIfNullOrWhiteSpace(settingsFilePath);
 
         services.AddDbContextFactory<AppDbContext>(options => options.UseSqlite(sqliteConnectionString));
 
         services.TryAddSingleton(TimeProvider.System);
 
         services.AddSingleton<ISteamSession, SteamSession>();
+        services.AddSingleton<ISettingsStore>(_ => new JsonSettingsStore(settingsFilePath));
 
         AddHttpClients(services);
 
@@ -37,6 +40,9 @@ public static class InfrastructureServiceCollectionExtensions
 
         services.AddSingleton<IInventoryRepository, InventoryRepository>();
         services.AddSingleton<IPriceSnapshotRepository, PriceSnapshotRepository>();
+
+        services.AddSingleton<IPriceProvider, SkinportPriceProvider>();
+        services.AddSingleton<IPriceAggregator, PriceAggregator>();
 
         services.AddHostedService<PriceSnapshotBackgroundService>();
 

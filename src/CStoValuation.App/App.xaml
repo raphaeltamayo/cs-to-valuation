@@ -1,7 +1,9 @@
 <Application x:Class="CStoValuation.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:CStoValuation.App.Converters">
+             xmlns:converters="clr-namespace:CStoValuation.App.Converters"
+             xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
+             xmlns:views="clr-namespace:CStoValuation.App.Views">
     <!-- No StartupUri: the window is created and shown by the DI host in App.xaml.cs,
          so it can be constructed with its dependencies injected. -->
     <Application.Resources>
@@ -10,6 +12,17 @@
             <!-- ===== Converters ===== -->
             <converters:RarityToBrushConverter x:Key="RarityToBrush" />
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+            <!-- ===== Pages (mapped from the shell's CurrentPage view-model) ===== -->
+            <DataTemplate DataType="{x:Type vm:InventoryPageViewModel}">
+                <views:InventoryPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:CatalogPageViewModel}">
+                <views:CatalogPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:PerformancePageViewModel}">
+                <views:PerformancePage />
+            </DataTemplate>
 
             <!-- ===== Palette ===== -->
             <Color x:Key="BackgroundColor">#FF14161A</Color>
