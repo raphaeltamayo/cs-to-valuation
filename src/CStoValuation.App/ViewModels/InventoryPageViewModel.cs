@@ -118,6 +118,15 @@ internal sealed partial class InventoryPageViewModel : ObservableObject
     partial void OnSelectedItemChanged(ValuedItemViewModel? value) =>
         _ = Detail.LoadAsync(value, value is null ? null : _salesHistory.GetValueOrDefault(value.Name));
 
+    /// <summary>
+    /// The single "open this item's detail" entry point: the inventory grid drives it via
+    /// <see cref="SelectedItem"/> binding directly, while the movers strip and the top-holding
+    /// card (which aren't grid rows) call this command with the same underlying item so every
+    /// clickable skin in the app opens the exact same detail panel.
+    /// </summary>
+    [RelayCommand]
+    private void SelectItem(ValuedItemViewModel item) => SelectedItem = item;
+
     public async Task InitializeAsync()
     {
         _settings = await _settingsStore.LoadAsync();

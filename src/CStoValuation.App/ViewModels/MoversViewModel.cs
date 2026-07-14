@@ -62,7 +62,7 @@ internal sealed partial class MoversViewModel : ObservableObject
 
             var unitChange = recentAvg - baselineAvg;
             _all.Add(new MoverData(
-                Name: item.Name,
+                Item: item,
                 Percent: unitChange / baselineAvg * 100m,
                 UnitChange: unitChange,
                 LineChange: unitChange * item.Quantity,
@@ -82,7 +82,7 @@ internal sealed partial class MoversViewModel : ObservableObject
             .Take(MaxMovers))
         {
             Movers.Add(new MoverViewModel(
-                mover.Name,
+                mover.Item,
                 DisplayText(mover),
                 SortKey(mover) >= 0m,
                 MoneyFormatter.Format(mover.Latest, Currency)));
@@ -111,5 +111,5 @@ internal sealed partial class MoversViewModel : ObservableObject
         return sign + MoneyFormatter.Format(Math.Abs(value), Currency);
     }
 
-    private sealed record MoverData(string Name, decimal Percent, decimal UnitChange, decimal LineChange, decimal Latest);
+    private sealed record MoverData(ValuedItemViewModel Item, decimal Percent, decimal UnitChange, decimal LineChange, decimal Latest);
 }

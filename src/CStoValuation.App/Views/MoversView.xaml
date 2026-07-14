@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:CStoValuation.App.Behaviors"
+             xmlns:views="clr-namespace:CStoValuation.App.Views"
              xmlns:vm="clr-namespace:CStoValuation.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MoversViewModel}">
@@ -11,7 +13,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,10">
@@ -30,9 +32,9 @@
 
             <!-- Empty state -->
             <TextBlock Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"
-                       Foreground="{StaticResource MutedTextBrush}"
+                       Foreground="{StaticResource MutedTextBrush}" Height="120"
                        Text="No movers to show yet — connect an inventory with items that have recent sales.">
-    <TextBlock.Style>
+                <TextBlock.Style>
                     <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                         <Setter Property="Visibility" Value="Visible" />
                         <Style.Triggers>
@@ -44,43 +46,66 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding Movers}"
+            <!-- Horizontal, scrollable strip of mover cards -->
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
                           Visibility="{Binding HasMovers, Converter={StaticResource BoolToVisibility}}">
-                <ItemsControl.Template>
-                    <ControlTemplate TargetType="ItemsControl">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <ItemsPresenter />
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </ItemsControl.Template>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="0,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="84" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Column="1" Text="{Binding LatestPriceText}" Margin="8,0"
-                                       Foreground="{StaticResource MutedTextBrush}" />
-                            <TextBlock Grid.Column="2" Text="{Binding ValueText}" HorizontalAlignment="Right"
-                                       FontWeight="SemiBold">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsPositive}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource PositiveBrush}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                <ItemsControl ItemsSource="{Binding Movers}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="140" Margin="0,0,10,0"
+                                    Command="{Binding DataContext.SelectItemCommand,
+                                                      RelativeSource={RelativeSource AncestorType={x:Type views:InventoryPage}}}"
+                                    CommandParameter="{Binding OwnedItem}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{StaticResource SurfaceMutedBrush}"
+                                                CornerRadius="8" Padding="10" Cursor="Hand">
+                                            <StackPanel>
+                                                <Image behaviors:ImageLoader.SourceUrl="{Binding ImageUrl}"
+                                                       Width="110" Height="80" Stretch="Uniform" />
+                                                <TextBlock Text="{Binding Name}" FontSize="11" TextWrapping="Wrap"
+                                                           Margin="0,8,0,4" TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="32" />
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding LatestPriceText}"
+                                                               FontSize="11"
+                                                               Foreground="{StaticResource MutedTextBrush}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding ValueText}" FontSize="11"
+                                                               FontWeight="SemiBold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock"
+                                                                   BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                                <Setter Property="Foreground"
+                                                                        Value="{StaticResource DangerBrush}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsPositive}"
+                                                                                 Value="True">
+                                                                        <Setter Property="Foreground"
+                                                                                Value="{StaticResource PositiveBrush}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
     </Border>
 </UserControl>

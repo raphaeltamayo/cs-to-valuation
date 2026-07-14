@@ -2,16 +2,23 @@ namespace CStoValuation.App.ViewModels;
 
 internal sealed class MoverViewModel
 {
-    public MoverViewModel(string name, string valueText, bool isPositive, string latestPriceText)
+    public MoverViewModel(ValuedItemViewModel ownedItem, string valueText, bool isPositive, string latestPriceText)
     {
-        Name = name;
+        OwnedItem = ownedItem;
         ValueText = valueText;
         IsPositive = isPositive;
         LatestPriceText = latestPriceText;
     }
 
-    public string Name { get; }
+    public ValuedItemViewModel OwnedItem { get; }
+
+    public string Name => OwnedItem.Name;
+
+    public string? ImageUrl => OwnedItem.ImageUrl;
+
     public string ValueText { get; }
+
     public bool IsPositive { get; }
+
     public string LatestPriceText { get; }
 }
